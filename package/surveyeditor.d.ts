@@ -1,4 +1,4 @@
-/*Type definitions for Surveyjs Builder(Editor) JavaScript library v1.0.16
+/*Type definitions for Surveyjs Builder(Editor) JavaScript library v1.0.20
 (c) Devsoft Baltic O� - http://surveyjs.io/
 Github: https://github.com/surveyjs/editor
 License: https://surveyjs.io/Licenses#BuildSurvey
@@ -922,6 +922,7 @@ export declare class DragDropTargetElement {
     source: any;
     moveToParent: any;
     moveToIndex: number;
+    nestedPanelDepth: number;
     constructor(page: Survey.Page, target: any, source: any);
     moveTo(destination: any, isBottom: boolean, isEdge?: boolean): boolean;
     doDrop(): any;
@@ -930,6 +931,7 @@ export declare class DragDropTargetElement {
 export declare class DragDropHelper {
     data: Survey.ISurvey;
     static edgeHeight: number;
+    static nestedPanelDepth: number;
     static dataStart: string;
     static dragData: any;
     static prevEvent: {
@@ -963,6 +965,7 @@ export interface ISurveyObjectEditorOptions {
     onValueChangingCallback(options: any): any;
     onPropertyEditorObjectSetCallback(propertyName: string, obj: Survey.Base, editor: SurveyPropertyEditorBase): any;
     onPropertyEditorModalShowDescriptionCallback(propertyName: string, obj: Survey.Base): any;
+    onGetElementEditorTitleCallback(obj: Survey.Base, title: string): string;
 }
 export declare class SurveyPropertyEditorBase implements Survey.ILocalizableOwner {
     koValue: any;
@@ -1008,7 +1011,6 @@ export declare class SurveyPropertyEditorBase implements Survey.ILocalizableOwne
     protected onOptionsChanged(): void;
     protected setValueCore(value: any): void;
     setObject(value: any): void;
-    setRenderedElements(rootElement: any, elements: any[]): void;
     activate(): void;
     protected createEditorOptions(): any;
     protected onSetEditorOptions(editorOptions: any): void;
@@ -1093,8 +1095,10 @@ export declare class SurveyPropertyItemsEditor extends SurveyPropertyModalEditor
     protected getCorrectedValue(value: any): any;
     protected createEditorOptions(): any;
     protected onSetEditorOptions(editorOptions: any): void;
-    onDragEnd: (evt: any) => void;
-    afterItemsRendered: (elements: any) => void;
+    sortableOptions: {
+        handle: string;
+        animation: number;
+    };
     protected AddItem(): void;
     protected setupItems(): void;
     protected onValueChanged(): void;
@@ -1415,6 +1419,7 @@ export declare class SurveyObjects {
     koSelected: any;
     static intend: string;
     surveyValue: Survey.Survey;
+    getItemTextCallback: (obj: Survey.Base, text: string) => string;
     constructor(koObjects: any, koSelected: any);
     survey: Survey.Survey;
     addPage(page: Survey.PageModel): void;
@@ -1508,8 +1513,8 @@ export declare class SurveyQuestionEditor {
     onApplyClick: any;
     onResetClick: any;
     koTabs: KnockoutObservableArray<SurveyQuestionEditorTab>;
-    koActiveTab: any;
-    koTitle: any;
+    koActiveTab: KnockoutObservable<string>;
+    koTitle: KnockoutObservable<string>;
     koShowApplyButton: any;
     onTabClick: any;
     constructor(obj: Survey.Base, onCanShowPropertyCallback: (object: any, property: Survey.JsonObjectProperty) => boolean, className?: string, options?: ISurveyObjectEditorOptions);
@@ -1521,8 +1526,8 @@ export declare class SurveyQuestionEditor {
 export declare class SurveyQuestionEditorTab {
     obj: Survey.Base;
     properties: SurveyQuestionEditorProperties;
-    koAfterRender: any;
     constructor(obj: Survey.Base, properties: SurveyQuestionEditorProperties, _name: any);
+    koAfterRender(elements: HTMLElement[], context: any): void;
     readonly name: string;
     title: string;
     readonly htmlTemplate: string;
@@ -1706,7 +1711,6 @@ export declare class SurveyObjectProperty {
     readonly koIsDefault: any;
     object: any;
     protected onEditorValueChanged(newValue: any): void;
-    afterRenderHandler: (rootElement: any, elements: any) => void;
 }
 
 export declare class SurveyObjectEditor {
@@ -1746,8 +1750,8 @@ export declare class PagesEditor {
         animation: number;
     };
     selectedPage: Survey.PageModel;
-    getPageClass: (page: any) => "" | "svd_selected_page";
-    getPageMenuIconClass: (page: any) => "icon-gear-active" | "icon-gear";
+    getPageClass: (page: any) => string;
+    getPageMenuIconClass: (page: any) => "icon-gearactive" | "icon-gear";
     showActions: (page: any) => boolean;
     isLastPage(): boolean;
     moveLeft(model: any, event: any): void;
@@ -1797,6 +1801,8 @@ export declare class SurveyLiveTester {
     survey: Survey.Survey;
     koSurvey: any;
     koPages: any;
+    koActivePage: any;
+    setPageDisable: any;
     onSurveyCreatedCallback: (survey: Survey.Survey) => any;
     constructor();
     setJSON(json: any): void;
@@ -2149,6 +2155,13 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             * <br/> options.htmlBottom the html that you want to see on the bottom of the modal window
             */
         onShowPropertyModalEditorDescription: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
+        /**
+            * Use this event to change the text showing in the dropdown of the property grid.
+            * <br/> sender the survey editor object that fires the event
+            * <br/> options.obj  the survey object.
+            * <br/> options.text the current object text, commonly it is a name. You must change this attribute
+            */
+        onGetObjectTextInPropertyGrid: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
         koAutoSave: KnockoutObservable<boolean>;
         /**
             * A boolean property, false by default. Set it to true to call protected doSave method automatically on survey changing.
@@ -2193,6 +2206,7 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             * @param options Survey Editor options. The following options are available: showJSONEditorTab, showTestSurveyTab, showEmbededSurveyTab, showPropertyGrid, questionTypes, showOptions, generateValidJSON, isAutoSave, designerHeight.
             */
         constructor(renderedElement?: any, options?: any);
+        themeCss: KnockoutComputed<"sv_bootstrap_css" | "sv_default_css">;
         protected addToolbarItems(): void;
         protected setOptions(options: any): void;
         /**
@@ -2341,6 +2355,7 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         onValueChangingCallback(options: any): void;
         onPropertyEditorObjectSetCallback(propertyName: string, obj: Survey.Base, editor: SurveyPropertyEditorBase): void;
         onPropertyEditorModalShowDescriptionCallback(propertyName: string, obj: Survey.Base): any;
+        onGetElementEditorTitleCallback(obj: Survey.Base, title: string): string;
 }
 
 export interface ISurveyInfo {
@@ -2380,6 +2395,26 @@ export declare class SurveysManager {
     nameEditorKeypress: (model: any, event: any) => void;
 }
 
+export declare class StylesManager {
+    static Styles: {
+        [key: string]: string;
+    };
+    static ThemeColors: {
+        [key: string]: {
+            [key: string]: string;
+        };
+    };
+    static ThemeCss: {
+        [key: string]: string;
+    };
+    static findSheet(styleSheetId: string): CSSStyleSheet;
+    static createSheet(styleSheetId: string): CSSStyleSheet;
+    static currentTheme: KnockoutObservable<string>;
+    static applyTheme(themeName?: string, themeSelector?: string): void;
+    constructor();
+    initializeStyles(sheet: CSSStyleSheet): void;
+}
+
 import "./title-editor.scss";
 export declare class TitleInplaceEditor {
     protected rootElement: any;
@@ -2401,7 +2436,7 @@ export declare var titleAdorner: {
     afterRender: (elements: HTMLElement[], model: any, editor: any) => void;
 };
 export declare var itemTitleAdorner: {
-    getMarkerClass: (model: any) => string;
+    getMarkerClass: (model: any) => "" | "item_title_editable title_editable";
     afterRender: (elements: HTMLElement[], model: Survey.QuestionMultipleText, editor: any) => void;
 };
 
