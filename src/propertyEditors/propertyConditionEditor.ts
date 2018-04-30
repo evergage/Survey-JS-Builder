@@ -613,7 +613,7 @@ ko.bindingHandlers.aceEditor = {
           "</div>";
       }
     };
-    langTools.setCompleters([completer]);
+    langTools.addCompleter(completer);
     editor.setOptions({
       enableBasicAutocompletion: true,
       enableLiveAutocompletion: true
