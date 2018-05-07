@@ -174,6 +174,10 @@ export class StylesManager {
   };
   private sheet: CSSStyleSheet = null;
 
+  static addThemeColors(themeName: string, themeColors: Object) {
+    debugger;
+  }
+
   static findSheet(styleSheetId: string) {
     for (let i = 0; i < document.styleSheets.length; i++) {
       if (document.styleSheets[i].ownerNode["id"] === styleSheetId) {

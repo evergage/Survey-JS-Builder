@@ -1885,3 +1885,40 @@ ko.components.register("svg-icon", {
   },
   template: "<svg class='svd-svg-icon'><use></use></svg>"
 });
+
+var SVG_TO_FA_ICON_MAP = {
+  "icon-left": "fa-chevron-left",
+  "icon-gearactive": "fa-cog",
+  "icon-actioneditelement": "fa-pencil-alt",
+  "icon-actiondelete": "fa-trash-alt",
+  "icon-actioncopy": "fa-clone",
+  "icon-right": "fa-chevron-right",
+  "icon-add": "fa-plus-square",
+  "icon-inplacecheck": "fa-check",
+  "icon-inplaceedit": "fa-pencil-alt",
+  "icon-inplacedraggable": "fa-arrows",
+  "icon-inplacedelete": "fa-trash-alt",
+  "icon-inplaceplus": "fa-plus-square",
+  "icon-actionshowtitle": "fa-eye",
+  "icon-actionnotrequired": "fa-exclamation",
+  "icon-actionaddtotoolbox": "fa-save",
+  "icon-actiondragelement": "fa-arrows",
+  "icon-edit": "fa-pencil-alt"
+}
+
+ko.components.register("fa-icon", {
+  viewModel: {
+    createViewModel: (params, componentInfo) => {
+      ko.computed(() => {
+          var _componentInfo = componentInfo;
+          var _params = params;
+          var iconWrapper: any = componentInfo.element.childNodes[0];
+          var iconElem: any = iconWrapper.childNodes[0];
+          var iconName = ko.unwrap(params.iconName);
+          var faIconClass = SVG_TO_FA_ICON_MAP[iconName];
+          iconElem.classList.add(faIconClass);
+      });
+    }
+  },
+  template: "<span class='font-awesome-icon'><i class='fas'></i></span>"
+});

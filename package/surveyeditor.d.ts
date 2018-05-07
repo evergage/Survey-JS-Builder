@@ -2407,6 +2407,7 @@ export declare class StylesManager {
     static ThemeCss: {
         [key: string]: string;
     };
+    static addThemeColors(themeName: string, themeColors: Object): void;
     static findSheet(styleSheetId: string): CSSStyleSheet;
     static createSheet(styleSheetId: string): CSSStyleSheet;
     static currentTheme: KnockoutObservable<string>;
