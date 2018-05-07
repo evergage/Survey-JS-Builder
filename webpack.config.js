@@ -210,7 +210,8 @@ module.exports = function(options) {
     devtool: "inline-source-map"
   };
 
-  var evergageTargetPackage = '/' + process.env.EVERGAGE_MAIN_PRODUCT_DIR + '/analytics/server-ui/node_modules/@bower_components/surveyjs-builder-evg/package/';
+  var evergageServerUiTargetPackage = '/' + process.env.EVERGAGE_MAIN_PRODUCT_DIR + '/analytics/server-ui/node_modules/@bower_components/surveyjs-builder-evg/package/';
+  var evergageServerTargetPackage = '/' + process.env.EVERGAGE_MAIN_PRODUCT_DIR + '/analytics/server/target/apptegic/ui/bower_components/surveyjs-builder-evg/package/';
 
   if (options.buildType === "prod") {
     config.devtool = false;
@@ -223,7 +224,12 @@ module.exports = function(options) {
         2
       ),
       new CopyWebpackPlugin([
-        { from: packagePath, to: evergageTargetPackage }
+        { from: packagePath, to: evergageServerUiTargetPackage }
+      ], {
+        force: true
+      }),
+      new CopyWebpackPlugin([
+        { from: packagePath, to: evergageServerTargetPackage }
       ], {
         force: true
       })
