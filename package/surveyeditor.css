@@ -525,6 +525,10 @@
   position: relative;
   font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
   font-size: 12px; }
+  .svd_container #testSurveyPageChanged {
+    width: 300px;
+    display: inline-block;
+    margin-bottom: 3px; }
   .svd_container #surveyjs .svd_question {
     overflow: visible; }
   .svd_container .svd-textitems-column {
@@ -901,6 +905,8 @@
   display: inline-block;
   width: 60%;
   padding: 0 15px; }
+  .svd_container.sv_default_css .svd_editors.svd_wide {
+    width: 85%; }
 
 .svd_container.sv_default_css .svd_properties {
   float: right;
