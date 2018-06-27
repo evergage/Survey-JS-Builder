@@ -7,9 +7,11 @@
 @import "toolbar";
 @import "pages-editor";
 @import "properties";
+@import "bootstrap-material";
 .svd_container {
   position: relative;
-  font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans",
+    "Helvetica Neue", Arial, sans-serif;
   font-size: 12px;
   #testSurveyPageChanged {
     width: 300px;
@@ -45,6 +47,13 @@
   .svd-drag-handle {
     font-size: 20px;
     cursor: move;
+  }
+  .svd-itemvalue-actions-container {
+    white-space: nowrap;
+  }
+  .svd-itemvalue-action {
+    display: inline-block;
+    vertical-align: middle;
   }
   .form-control {
     border-radius: 2px;
@@ -82,12 +91,12 @@
   }
   .propertyeditor-triggers,
   .propertyeditor-validators {
-    min-height: 150px;
+    min-height: 200px;
     .first-addon {
       padding: 0;
     }
     .ddmenu-container {
-      .ddmenu>span {
+      .ddmenu > span {
         padding: 6px 12px;
       }
       ul {
@@ -208,6 +217,11 @@
   .svd_wrap_elements {
     white-space: normal;
   }
+  .svd-matrixdropdowncolumns-table {
+    th {
+      white-space: nowrap;
+    }
+  }
   .svd_table-nowrap {
     table-layout: fixed;
   }
@@ -244,8 +258,6 @@
   .animated {
     -webkit-animation-duration: 0.2s;
     animation-duration: 0.2s;
-    -webkit-animation-fill-mode: both;
-    animation-fill-mode: both;
   }
   @-webkit-keyframes fadeIn {
     from {
@@ -305,6 +317,10 @@
     .modal-body {
       max-height: 75vh;
       overflow: auto;
+    }
+    .svd_property_editor_dropdown {
+      min-width: 140px;
+      display: block;
     }
   }
   .svd_items_table {
@@ -561,4 +577,8 @@
       }
     }
   }
+}
+
+.svd_container.sv_bootstrapmaterial_css {
+
 }

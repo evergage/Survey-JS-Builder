@@ -2,11 +2,19 @@ import * as ko from "knockout";
 import * as Survey from "survey-knockout";
 import { SurveyPropertyEditorBase } from "../../src/propertyEditors/propertyEditorBase";
 import {
+  SurveyQuestionEditor,
+  SurveyQuestionEditorTab
+} from "../../src/questionEditors/questionEditor";
+import {
   SurveyPropertyItemValuesEditor,
-  SurveyPropertyItemValuesEditorColumn,
-  SurveyPropertyItemValuesEditorCell,
   SurveyPropertyItemValuesEditorItem
 } from "../../src/propertyEditors/propertyItemValuesEditor";
+import {
+  SurveyNestedPropertyEditorEditorCell,
+  SurveyNestedPropertyEditorColumn
+} from "../../src/propertyEditors/propertyNestedPropertyEditor";
+import { SurveyQuestionEditorDefinition } from "../../src/questionEditors/questionEditorDefinition";
+
 import { SurveyPropertyMultipleValuesEditor } from "../../src/propertyEditors/propertyMultipleValuesEditor";
 import { SurveyPropertyDropdownColumnsEditor } from "../../src/propertyEditors/propertyMatrixDropdownColumnsEditor";
 import { SurveyObjectProperty } from "../../src/objectProperty";
@@ -36,6 +44,7 @@ export default QUnit.module("PropertyEditorsTests");
 class EditorOptionsTests implements ISurveyObjectEditorOptions {
   alwaySaveTextInPropertyEditors: boolean;
   showApplyButtonInEditors: boolean;
+  useTabsInElementEditor: boolean;
   onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue) {}
   onMatrixDropdownColumnAddedCallback(column: Survey.MatrixDropdownColumn) {}
   onSetPropertyEditorOptionsCallback(
@@ -439,6 +448,48 @@ QUnit.test("SurveyPropertyItemValue custom property", function(assert) {
 
   Survey.JsonObject.metaData.removeProperty("itemvalue", "imageLink");
 });
+QUnit.test("SurveyPropertyItemValue columns define in definition", function(
+  assert
+) {
+  Survey.JsonObject.metaData.addProperty("itemvalue", "description");
+  SurveyQuestionEditorDefinition.definition["checkbox@choices"] = {
+    properties: ["value", "text"]
+  };
+
+  var qRadio = new Survey.QuestionRadiogroup("q1");
+  var qCheck = new Survey.QuestionCheckbox("q2");
+
+  var propertyEditor = new SurveyPropertyItemValuesEditor(
+    Survey.JsonObject.metaData.findProperty("selectbase", "choices")
+  );
+  propertyEditor.object = qRadio;
+  propertyEditor.editingValue = qRadio.choices;
+  propertyEditor.beforeShow();
+  assert.equal(
+    propertyEditor.columns.length,
+    3,
+    "There are three columns value + text + description"
+  );
+  assert.equal(
+    propertyEditor.columns[2].property.name,
+    "description",
+    "The last column name is"
+  );
+  propertyEditor = new SurveyPropertyItemValuesEditor(
+    Survey.JsonObject.metaData.findProperty("selectbase", "choices")
+  );
+  propertyEditor.object = qCheck;
+  propertyEditor.editingValue = qCheck.choices;
+  propertyEditor.beforeShow();
+  assert.equal(
+    propertyEditor.columns.length,
+    2,
+    "There are two columns value + text"
+  );
+
+  delete SurveyQuestionEditorDefinition.definition["radiogroup@choices"];
+  Survey.JsonObject.metaData.removeProperty("itemvalue", "description");
+});
 QUnit.test("extended SurveyPropertyItemValue + custom property", function(
   assert
 ) {
@@ -543,11 +594,10 @@ QUnit.test("SurveyPropertyItemValuesEditor + locale", function(assert) {
     "selectbase",
     "choices"
   );
-  var propEditor = <SurveyPropertyItemValuesEditor>SurveyPropertyEditorFactory.createEditor(
-    property,
-    function(newValue) {
+  var propEditor = <SurveyPropertyItemValuesEditor>(
+    SurveyPropertyEditorFactory.createEditor(property, function(newValue) {
       q.choices = newValue;
-    }
+    })
   );
   propEditor.beforeShow();
   propEditor.object = q;
@@ -568,14 +618,17 @@ QUnit.test("SurveyPropertyItemValuesEditor + locale", function(assert) {
   survey.locale = "de";
   assert.equal(q.choices[0].text, "Deutsch 1", "value is deutsch");
 });
-QUnit.test("SurveyPropertyItemValuesEditorCell", function(assert) {
+QUnit.test("SurveyNestedPropertyEditorEditorCell", function(assert) {
   //TODO remove later - create property if it doesn't exist
   var propertyEditor = new SurveyPropertyItemValuesEditor(null);
 
   var property = Survey.JsonObject.metaData.findProperty("itemvalue", "value");
-  var column = new SurveyPropertyItemValuesEditorColumn(property);
+  var column = new SurveyNestedPropertyEditorColumn(property);
   var itemValue = new Survey.ItemValue(1);
-  var cell = new SurveyPropertyItemValuesEditorCell(itemValue, column);
+  var cell = new SurveyNestedPropertyEditorEditorCell(
+    itemValue,
+    column.property
+  );
   assert.equal(cell.value, 1, "value equals 1");
   assert.equal(cell.koValue(), 1, "koValue equals 1");
   cell.koValue(5);
@@ -595,15 +648,18 @@ QUnit.test("SurveyPropertyItemValuesEditorCell", function(assert) {
     "There is empty error in koHasError"
   );
 });
-QUnit.test("SurveyPropertyItemValuesEditorCell + property editor", function(
+QUnit.test("SurveyNestedPropertyEditorEditorCell + property editor", function(
   assert
 ) {
   var property = new Survey.JsonObjectProperty("testBoolean");
   property.type = "boolean";
-  var column = new SurveyPropertyItemValuesEditorColumn(property);
+  var column = new SurveyNestedPropertyEditorColumn(property);
   var itemValue = new Survey.ItemValue(1);
   itemValue["testBoolean"] = true;
-  var cell = new SurveyPropertyItemValuesEditorCell(itemValue, column);
+  var cell = new SurveyNestedPropertyEditorEditorCell(
+    itemValue,
+    column.property
+  );
   assert.equal(cell.value, true, "value equals true");
   assert.equal(cell.koValue(), true, "koValue equals true");
   assert.equal(
@@ -617,12 +673,13 @@ QUnit.test("SurveyPropertyItemValuesEditorItem", function(assert) {
   var itemValue = new Survey.ItemValue(null);
   var item = new SurveyPropertyItemValuesEditorItem(
     itemValue,
-    propertyEditor.columns
+    propertyEditor.columns,
+    null
   );
   assert.equal(item.cells.length, 2, "There are two cells");
-  assert.equal(item.hasError, true, "There is an error");
+  assert.equal(item.hasError(), true, "There is an error");
   item.cells[0].koValue(0);
-  assert.equal(item.hasError, false, "There is no errors");
+  assert.equal(item.hasError(), false, "There is no errors");
 });
 
 QUnit.test("SurveyPropertyMultipleValuesEditor", function(assert) {
@@ -654,63 +711,117 @@ QUnit.test("SurveyPropertyMatrixDropdownColumns set properties", function(
   columns.push(new Survey.MatrixDropdownColumn("column 1"));
   columns.push(new Survey.MatrixDropdownColumn("column 2"));
   columns[0]["choices"] = [1, 2, "three"];
-  var itemValueProperty = new SurveyPropertyDropdownColumnsEditor(null);
-  itemValueProperty.beforeShow();
-  itemValueProperty.onChanged = (
-    newValue: Array<Survey.MatrixDropdownColumn>
-  ) => {
+  var columnsEditor = new SurveyPropertyDropdownColumnsEditor(null);
+  columnsEditor.beforeShow();
+  columnsEditor.onChanged = (newValue: Array<Survey.MatrixDropdownColumn>) => {
     columns = newValue;
   };
-  itemValueProperty.editingValue = columns;
-  assert.equal(itemValueProperty.koItems().length, 2, "there are two elements");
+
+  assert.equal(columnsEditor.columns.length, 4, "By default four columns");
+
+  columnsEditor.editingValue = columns;
+  assert.equal(columnsEditor.koItems().length, 2, "there are two elements");
   assert.equal(
-    itemValueProperty.koItems()[0].koName(),
+    columnsEditor.koItems()[0].cells[2].value,
     "column 1",
     "the first column name"
   );
-  itemValueProperty.onAddClick();
-  itemValueProperty.koItems()[2].koCellType("checkbox");
-  itemValueProperty.koItems()[2].koName("column 3");
+  columnsEditor.onAddClick();
+  columnsEditor.koItems()[2].cells[1].koValue("checkbox");
+  columnsEditor.koItems()[2].cells[2].koValue("column 3");
   assert.equal(
-    itemValueProperty.koItems().length,
+    columnsEditor.koItems().length,
     3,
-    "There are 3 columns un editor"
+    "There are 3 columns in editor"
   );
-  itemValueProperty.onApplyClick();
+  columnsEditor.onApplyClick();
   assert.equal(columns.length, 3, "There are 3 columns");
   assert.equal(
     columns[2]["cellType"],
     "checkbox",
     "the last column has checkbox cells"
   );
+  assert.equal(
+    columns[2]["name"],
+    "column 3",
+    "the last column name set correctly"
+  );
 });
-QUnit.test("SurveyPropertyMatrixDropdownColumns use question editor", function(
+
+QUnit.test("SurveyPropertyMatrixDropdownColumns change columns", function(
   assert
 ) {
+  var saveProperties =
+    SurveyQuestionEditorDefinition.definition.matrixdropdowncolumn.properties;
+
+  SurveyQuestionEditorDefinition.definition.matrixdropdowncolumn.properties = [
+    "cellType",
+    "name",
+    "readOnly"
+  ];
+
   var columns: Array<Survey.MatrixDropdownColumn> = [];
   columns.push(new Survey.MatrixDropdownColumn("column 1"));
   columns.push(new Survey.MatrixDropdownColumn("column 2"));
-  var itemValueProperty = new SurveyPropertyDropdownColumnsEditor(null);
-  itemValueProperty.beforeShow();
-  itemValueProperty.onChanged = (
-    newValue: Array<Survey.MatrixDropdownColumn>
-  ) => {
-    columns = newValue;
-  };
-  itemValueProperty.editingValue = columns;
+  var columnsEditor = new SurveyPropertyDropdownColumnsEditor(null);
+  assert.equal(columnsEditor.columns.length, 3, "There are 3 columns");
+  assert.equal(
+    columnsEditor.columns[2].property.name,
+    "readOnly",
+    "The last column is readonly"
+  );
 
-  assert.equal(itemValueProperty.koEditItem(), null, "It is null by default");
-  itemValueProperty.koEditItem(itemValueProperty.koItems()[1]);
+  SurveyQuestionEditorDefinition.definition.matrixdropdowncolumn.properties = saveProperties;
+});
+
+QUnit.test("SurveyPropertyMatrixDropdownColumns use question editor", function(
+  assert
+) {
+  var survey = new Survey.Survey();
+  survey.addNewPage("p");
+  var question = new Survey.QuestionMatrixDropdown("q1");
+  question.addColumn("column 1");
+  question.addColumn("column 2");
+  survey.pages[0].addElement(question);
+  var columnsEditor = new SurveyPropertyDropdownColumnsEditor(
+    Survey.JsonObject.metaData.findProperty(question.getType(), "columns")
+  );
+  columnsEditor.object = question;
+  columnsEditor.beforeShow();
+  columnsEditor.onChanged = (newValue: Array<Survey.MatrixDropdownColumn>) => {
+    question.columns = newValue;
+  };
+  columnsEditor.editingValue = question.columns;
+
+  assert.equal(columnsEditor.koEditItem(), null, "It is null by default");
+  columnsEditor.koItems()[1].column.cellType = "dropdown";
+  columnsEditor.koEditItem(columnsEditor.koItems()[1]);
+  var colDetailEditor = <SurveyQuestionEditor>(
+    columnsEditor.koEditItem().itemEditor
+  );
   assert.notEqual(
-    itemValueProperty.koEditItem().itemEditor.obj,
+    colDetailEditor.obj,
     null,
     "The question editor obj is not null"
   );
   assert.equal(
-    itemValueProperty.koEditItem().itemEditor.obj.getType(),
+    colDetailEditor.obj.getType(),
     "matrixdropdowncolumn",
     "itemEditor edit the second item"
   );
+  var generalTab = <SurveyQuestionEditorTab>colDetailEditor.koTabs()[0];
+  var rows = generalTab.properties.rows;
+  for (var i = 0; i < rows.length; i++) {
+    for (var j = 0; j < rows[i].properties.length; j++) {
+      var prop = rows[i].properties[j];
+      if (prop.editor.editorType == "boolean") continue;
+      assert.equal(
+        prop.editor.showDisplayNameOnTop,
+        true,
+        "It should be shown on top"
+      );
+    }
+  }
 });
 
 QUnit.test("Text property test - two way binding", function(assert) {

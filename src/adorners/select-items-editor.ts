@@ -3,7 +3,7 @@ import * as Survey from "survey-knockout";
 import Sortable from "sortablejs";
 import { registerAdorner } from "../surveyjsObjects";
 import { editorLocalization } from "../editorLocalization";
-import { createAddItemHandler } from "./item-editor";
+import { createAddItemHandler, itemAdorner } from "./item-editor";
 
 import "./select-items-editor.scss";
 import { QuestionSelectBase } from "survey-knockout";
@@ -56,11 +56,14 @@ export var selectItemsEditorAdorner = {
   getMarkerClass: model => {
     return !!model.parent && !!model.choices ? "select_items_editor" : "";
   },
+  getElementName: model => "selectWrapper",
   afterRender: (elements: HTMLElement[], model: QuestionSelectBase, editor) => {
     elements[0].onclick = e => e.preventDefault();
     var decoration = document.createElement("div");
     decoration.innerHTML =
-      "<select-items-editor params='question: question, editor: editor'></select-items-editor>";
+      "<select-items-editor params='question: question, editor: editor, valueName: \"" +
+      (itemAdorner.inplaceEditForValues ? "value" : "text") +
+      "\"'></select-items-editor>";
     elements[0].appendChild(decoration);
     ko.applyBindings(
       {
@@ -72,4 +75,4 @@ export var selectItemsEditorAdorner = {
   }
 };
 
-registerAdorner("selectWrapper", selectItemsEditorAdorner);
+registerAdorner("select-choices", selectItemsEditorAdorner);

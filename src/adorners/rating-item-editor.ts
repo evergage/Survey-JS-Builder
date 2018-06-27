@@ -83,18 +83,21 @@ var createAddItemHandler = (
     question.rateMax += question.rateStep;
   } else {
     var nextValue = null;
-    var values = question.rateValues.map(function(item) {
+    var values = question.rateValues.map(function (item) {
       return item.itemValue;
     });
     nextValue = getNextValue("item", values);
 
     var itemValue = new Survey.ItemValue(nextValue);
-    itemValue.locOwner = {
+    itemValue.locOwner = <any>{
       getLocale: () => {
         if (!!question["getLocale"]) return question.getLocale();
         return "";
       },
       getMarkdownHtml: (text: string) => {
+        return text;
+      },
+      getProcessedText: (text: string) => {
         return text;
       }
     };
@@ -107,6 +110,7 @@ export var ratingItemAdorner = {
   getMarkerClass: model => {
     return !!model.visibleRateValues ? "item_editable" : "";
   },
+  getElementName: model => "itemText",
   afterRender: (
     elements: HTMLElement[],
     model: Survey.QuestionRating,
@@ -161,4 +165,4 @@ export var ratingItemAdorner = {
   }
 };
 
-registerAdorner("itemText", ratingItemAdorner);
+registerAdorner("rating-item", ratingItemAdorner);

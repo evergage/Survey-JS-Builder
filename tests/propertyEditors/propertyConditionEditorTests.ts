@@ -179,6 +179,56 @@ QUnit.test("SurveyPropertyConditionEditor.addCondition", function(assert) {
   assert.equal(editor.koCanAddCondition(), true, "empty doesn't require value");
 });
 
+QUnit.test(
+  "SurveyPropertyConditionEditor, use question.valueName, bug: #353",
+  function(assert) {
+    var property = Survey.JsonObject.metaData.findProperty(
+      "questionbase",
+      "visibleIf"
+    );
+    var survey = new Survey.Survey();
+    var page = survey.addNewPage("p");
+    var question = page.addNewQuestion("text", "q1");
+    var question2 = <Survey.Question>page.addNewQuestion("text", "q2");
+    question2.valueName = "val2";
+    var editor = new SurveyPropertyConditionEditor(property);
+    editor.object = question;
+    editor.koAddConditionQuestion("q2");
+    editor.koAddConditionValue("abc");
+    editor.addCondition();
+    assert.equal(
+      editor.koTextValue(),
+      "{val2} = 'abc'",
+      "valueName property is used"
+    );
+  }
+);
+
+QUnit.test(
+  "SurveyPropertyConditionEditor, add condition from wizard on apply, without pressing 'Add' button",
+  function(assert) {
+    var property = Survey.JsonObject.metaData.findProperty(
+      "questionbase",
+      "visibleIf"
+    );
+    var survey = new Survey.Survey();
+    var page = survey.addNewPage("p");
+    var question = page.addNewQuestion("text", "q1");
+    var question2 = <Survey.Question>page.addNewQuestion("text", "q2");
+    question2.valueName = "val2";
+    var editor = new SurveyPropertyConditionEditor(property);
+    editor.object = question;
+    editor.koAddConditionQuestion("q2");
+    editor.koAddConditionValue("abc");
+    editor.apply();
+    assert.equal(
+      editor.koTextValue(),
+      "{val2} = 'abc'",
+      "valueName property is used"
+    );
+  }
+);
+
 QUnit.test("SurveyPropertyConditionEditor.allCondtionQuestions", function(
   assert
 ) {
@@ -209,9 +259,8 @@ QUnit.test(
     );
     var survey = new Survey.Survey();
     var page = survey.addNewPage("p");
-    var question = <Survey.QuestionMatrixDropdown>page.addNewQuestion(
-      "matrixdropdown",
-      "q1"
+    var question = <Survey.QuestionMatrixDropdown>(
+      page.addNewQuestion("matrixdropdown", "q1")
     );
     question.columns.splice(0, question.columns.length);
     question.addColumn("col1");
@@ -241,9 +290,8 @@ QUnit.test(
     );
     var survey = new Survey.Survey();
     var page = survey.addNewPage("p");
-    var question = <Survey.QuestionPanelDynamic>page.addNewQuestion(
-      "paneldynamic",
-      "q1"
+    var question = <Survey.QuestionPanelDynamic>(
+      page.addNewQuestion("paneldynamic", "q1")
     );
     question.template.addNewQuestion("text", "q1");
     question.template.addNewQuestion("text", "q2");

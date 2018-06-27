@@ -1,6 +1,7 @@
 import * as Survey from "survey-knockout";
 
 export interface ISurveyQuestionEditorDefinition {
+  title?: string;
   properties?: Array<
     string | { name: string; category?: string; tab?: string }
   >;
@@ -45,7 +46,7 @@ export class SurveyQuestionEditorDefinition {
       tabs: [{ name: "html", index: 10 }]
     },
     matrixdropdownbase: {
-      properties: ["cellType"],
+      properties: ["cellType", "columnsLocation"],
       tabs: [
         { name: "columns", index: 10 },
         { name: "rows", index: 11 },
@@ -53,7 +54,7 @@ export class SurveyQuestionEditorDefinition {
       ]
     },
     matrixdynamic: {
-      properties: ["rowCount", "addRowText", "removeRowText"]
+      properties: ["rowCount", "addRowLocation", "addRowText", "removeRowText"]
     },
     matrix: {
       tabs: [{ name: "columns", index: 10 }, { name: "rows", index: 11 }]
@@ -78,6 +79,29 @@ export class SurveyQuestionEditorDefinition {
         { name: "choicesByUrl", index: 11 }
       ]
     },
+    "itemvalues@choices": {
+      title: "Rules",
+      tabs: [
+        { name: "general", visible: false },
+        { name: "visibleIf", visible: true }
+      ]
+    },
+    "itemvalues@rows": {
+      title: "Rules",
+      tabs: [
+        { name: "general", visible: false },
+        { name: "visibleIf", visible: true }
+      ]
+    },
+    "itemvalues@columns": {
+      title: "Rules",
+      tabs: [
+        { name: "general", visible: false },
+        { name: "visibleIf", visible: true }
+      ]
+    },
+    checkbox: {},
+    radiogroup: {},
     dropdown: {
       properties: ["optionsCaption"]
     },
@@ -89,6 +113,16 @@ export class SurveyQuestionEditorDefinition {
     },
     expression: {
       tabs: [{ name: "expression", index: 10 }]
+    },
+    matrixdropdowncolumn: {
+      properties: ["isRequired", "cellType", "name", "title"]
+    },
+    "matrixdropdowncolumn@default": {
+      tabs: [
+        { name: "general", visible: false },
+        { name: "visibleIf", index: 12 },
+        { name: "enableIf", index: 20 }
+      ]
     },
     "matrixdropdowncolumn@checkbox": {
       properties: ["hasOther", "otherText", "choicesOrder", "colCount"],
@@ -295,9 +329,9 @@ export class SurveyQuestionEditorDefinition {
       return result;
     }
     while (className) {
-      var metaClass = <Survey.JsonMetadataClass>Survey.JsonObject.metaData[
-        "findClass"
-      ](className);
+      var metaClass = <Survey.JsonMetadataClass>(
+        Survey.JsonObject.metaData["findClass"](className)
+      );
       if (!metaClass) break;
       if (SurveyQuestionEditorDefinition.definition[metaClass.name]) {
         result.push(SurveyQuestionEditorDefinition.definition[metaClass.name]);

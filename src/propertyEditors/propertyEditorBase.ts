@@ -5,6 +5,7 @@ import { setTimeout } from "timers";
 export interface ISurveyObjectEditorOptions {
   alwaySaveTextInPropertyEditors: boolean;
   showApplyButtonInEditors: boolean;
+  useTabsInElementEditor: boolean;
   onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue);
   onMatrixDropdownColumnAddedCallback(column: Survey.MatrixDropdownColumn);
   onSetPropertyEditorOptionsCallback(
@@ -76,6 +77,9 @@ export class SurveyPropertyEditorBase implements Survey.ILocalizableOwner {
   public get editorType(): string {
     throw "editorType is not defined";
   }
+  public get editorTypeTemplate(): string {
+    return this.editorType;
+  }
   public get property(): Survey.JsonObjectProperty {
     return this.property_;
   }
@@ -119,7 +123,7 @@ export class SurveyPropertyEditorBase implements Survey.ILocalizableOwner {
     if (this.isModal) {
       res += "-modalcontent";
     } else {
-      res += "-" + this.editorType;
+      res += "-" + this.editorTypeTemplate;
     }
     return res;
   }
@@ -167,12 +171,18 @@ export class SurveyPropertyEditorBase implements Survey.ILocalizableOwner {
     this.koHasError(this.checkForErrors());
     return this.koHasError();
   }
+  public getLocString(name: string) {
+    return editorLocalization.getString(name);
+  }
+  public hasLocString(name: string) {
+    return editorLocalization.hasString(name);
+  }
   protected checkForErrors(): boolean {
     var errorText = "";
     if (this.isRequired) {
       var er = this.isValueEmpty(this.koValue());
       if (er) {
-        errorText = editorLocalization.getString("pe.propertyIsEmpty");
+        errorText = this.getLocString("pe.propertyIsEmpty");
       }
     }
     if (
@@ -234,6 +244,9 @@ export class SurveyPropertyEditorBase implements Survey.ILocalizableOwner {
     return this.locale;
   }
   public getMarkdownHtml(text: string): string {
+    return text;
+  }
+  public getProcessedText(text: string): string {
     return text;
   }
   public get options(): ISurveyObjectEditorOptions {

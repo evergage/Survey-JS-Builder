@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import * as Survey from "survey-knockout";
 import { SurveyPropertyItemsEditor } from "./propertyItemsEditor";
-import { SurveyPropertyEditorBase } from "./propertyEditorBase";
+import { SurveyPropertyEditorBase, ISurveyObjectEditorOptions } from "./propertyEditorBase";
 import { SurveyHelper } from "../surveyHelper";
 import { editorLocalization } from "../editorLocalization";
 import { SurveyQuestionEditor } from "../questionEditors/questionEditor";
@@ -20,13 +20,19 @@ export class SurveyPropertyTextItemsEditor extends SurveyNestedPropertyEditor {
   public get editorType(): string {
     return "textitems";
   }
+  protected getEditorName(): string {
+    if (!this.koEditItem()) return "";
+    return editorLocalization
+      .getString("pe.columnEdit")
+      ["format"](this.koEditItem().koName());
+  }
   protected createNewEditorItem(): any {
     var newItem = new Survey.MultipleTextItem(this.getNewName());
     //newColumn.colOwner = TODO set colOwner.
-    return new SurveyPropertyTextItemsItem(newItem);
+    return new SurveyPropertyTextItemsItem(newItem, this.options);
   }
   protected createEditorItem(item: any) {
-    return new SurveyPropertyTextItemsItem(item);
+    return new SurveyPropertyTextItemsItem(item, this.options);
   }
   protected createItemFromEditorItem(editorItem: any) {
     return editorItem.item;
@@ -53,24 +59,16 @@ export class SurveyPropertyTextItemsItem extends SurveyNestedPropertyEditorItem 
   koName: any;
   koTitle: any;
   koIsRequired: any;
-  koEditorName: any;
   koHasError: any;
-  constructor(public item: Survey.MultipleTextItem) {
-    super();
+  constructor(public item: Survey.MultipleTextItem, options: ISurveyObjectEditorOptions) {
+    super(item, [], options);
     this.koName = ko.observable(item.name);
     this.koTitle = ko.observable(item.name === item.title ? "" : item.title);
     this.koIsRequired = ko.observable(this.item.isRequired);
     this.koHasError = ko.observable(false);
-
-    var self = this;
-    this.koEditorName = ko.computed(function() {
-      return editorLocalization
-        .getString("pe.itemEdit")
-        ["format"](self.koName());
-    });
   }
   protected createSurveyQuestionEditor() {
-    return new SurveyQuestionEditor(this.item, null, "multipletextitem");
+    return new SurveyQuestionEditor(this.item, null, "multipletextitem", this.options);
   }
   public hasError(): boolean {
     if (super.hasError()) return true;

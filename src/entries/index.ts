@@ -50,7 +50,8 @@ export {
   SurveyPropertyModalEditor
 } from "../propertyEditors/propertyModalEditor";
 export {
-  SurveyPropertyTextEditor
+  SurveyPropertyTextEditor,
+  SurveyPropertyHtmlEditor
 } from "../propertyEditors/propertyModalEditor";
 export {
   SurveyPropertyConditionEditor
@@ -112,6 +113,7 @@ export { StylesManager } from "../stylesmanager";
 import "../localization/french";
 import "../localization/german";
 import "../localization/italian";
+import "../localization/korean";
 import "../localization/persian";
 import "../localization/polish";
 import "../localization/portuguese";
@@ -125,3 +127,9 @@ export { labelAdorner } from "../adorners/label-editor";
 export { questionActionsAdorner } from "../adorners/question-actions";
 export { selectItemsEditorAdorner } from "../adorners/select-items-editor";
 export { ratingItemAdorner } from "../adorners/rating-item-editor";
+
+export {
+  IAccordionItemData,
+  AccordionItemModel,
+  AccordionModel
+} from "../utils/accordion";

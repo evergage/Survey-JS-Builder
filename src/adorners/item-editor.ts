@@ -26,8 +26,6 @@ class ItemInplaceEditor extends TitleInplaceEditor {
     if (this.notOther) {
       var index = model.question.choices.indexOf(model.item);
       model.question.choices.splice(index, 1);
-      var item = findParentNode("item_draggable", this.rootElement);
-      item.parentElement.removeChild(item);
     } else {
       this.question.hasOther = false;
     }
@@ -65,13 +63,16 @@ ko.components.register("item-editor", {
 });
 
 export var itemAdorner = {
+  inplaceEditForValues: false,
   getMarkerClass: model => {
     return !!model.parent && !!model.choices ? "item_editable" : "";
   },
+  getElementName: model => "controlLabel",
   afterRender: (elements: HTMLElement[], model: QuestionSelectBase, editor) => {
     for (var i = 0; i < elements.length; i++) {
       elements[i].onclick = e => e.preventDefault();
       var decoration = document.createElement("span");
+      decoration.className = "svda-adorner-root";
       if (i === elements.length - 1 && model.hasOther) {
         decoration.innerHTML =
           "<item-editor params='name: \"otherText\", target: target, item: item, question: question, editor: editor'></item-editor>";
@@ -87,7 +88,9 @@ export var itemAdorner = {
         );
       } else {
         decoration.innerHTML =
-          "<item-editor params='name: \"text\", target: target, item: item, question: question, editor: editor'></item-editor>";
+          "<item-editor params='name: \"" +
+          (itemAdorner.inplaceEditForValues ? "value" : "text") +
+          "\", target: target, item: item, question: question, editor: editor'></item-editor>";
         elements[i].appendChild(decoration);
         ko.applyBindings(
           {
@@ -103,7 +106,7 @@ export var itemAdorner = {
   }
 };
 
-registerAdorner("controlLabel", itemAdorner);
+registerAdorner("choices-label", itemAdorner);
 
 export var createAddItemHandler = (
   question: Survey.QuestionSelectBase,
@@ -116,12 +119,15 @@ export var createAddItemHandler = (
   nextValue = getNextValue("item", values);
 
   var itemValue = new Survey.ItemValue(nextValue);
-  itemValue.locOwner = {
+  itemValue.locOwner = <any>{
     getLocale: () => {
       if (!!question["getLocale"]) return question.getLocale();
       return "";
     },
     getMarkdownHtml: (text: string) => {
+      return text;
+    },
+    getProcessedText: (text: string) => {
       return text;
     }
   };
@@ -133,6 +139,7 @@ export var itemDraggableAdorner = {
   getMarkerClass: model => {
     return !!model.parent && !!model.choices ? "item_draggable" : "";
   },
+  getElementName: model => "item",
   afterRender: (
     elements: HTMLElement[],
     model: QuestionSelectBase,
@@ -184,4 +191,4 @@ export var itemDraggableAdorner = {
   }
 };
 
-registerAdorner("item", itemDraggableAdorner);
+registerAdorner("choices-draggable", itemDraggableAdorner);

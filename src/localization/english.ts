@@ -69,6 +69,10 @@ export var enStrings = {
     saving: "Saving",
     saved: "Saved"
   },
+  //Property names in table headers
+  pel: {
+    isRequired: "Required?"
+  },
   //Property Editors
   pe: {
     apply: "Apply",
@@ -81,6 +85,7 @@ export var enStrings = {
     addItem: "Click to add an item...",
     removeAll: "Remove All",
     edit: "Edit",
+    itemValueEdit: "Visible If",
     editChoices: "Edit Choices",
     move: "Move",
     empty: "<empty>",
@@ -100,13 +105,14 @@ export var enStrings = {
     aceEditorRowTitle: "Current row",
     aceEditorPanelTitle: "Current panel",
     showMore: "For more details please check the documentation",
+    conditionShowMoreUrl:
+      "https://surveyjs.io/Documentation/LibraryParameter?id=QuestionBase&parameter=visibleIf",
     assistantTitle: "Available questions:",
     cellsEmptyRowsColumns: "There is should be at least one column or row",
 
     propertyIsEmpty: "Please enter a value",
     value: "Value",
     text: "Text",
-    required: "Required?",
     columnEdit: "Edit column: {0}",
     itemEdit: "Edit item: {0}",
 
@@ -133,6 +139,8 @@ export var enStrings = {
     imageHeight: "Image height",
     imageWidth: "Image width",
     rowCount: "Row count",
+    columnsLocation: "Columns location",
+    addRowLocation: "Add row button location",
     addRowText: "Add row button text",
     removeRowText: "Remove row button text",
     minRateDescription: "Minimum rate description",
@@ -252,8 +260,11 @@ export var enStrings = {
     progressTop: "progressTop",
     progressBottom: "progressBottom",
     progressTopBottom: "progressTopBottom",
+    horizontal: "horizontal",
+    vertical: "vertical",
     top: "top",
     bottom: "bottom",
+    topBottom: "top and bottom",
     left: "left",
     color: "color",
     date: "date",
@@ -318,6 +329,7 @@ export var enStrings = {
   validators: {
     answercountvalidator: "answer count",
     emailvalidator: "e-mail",
+    expressionvalidator: "expression",
     numericvalidator: "numeric",
     regexvalidator: "regex",
     textvalidator: "text"
@@ -403,6 +415,7 @@ export var enStrings = {
 
     horizontalScroll: "horizontalScroll",
     cellType: "cellType",
+    columnsLocation: "columnsLocation",
     columnColCount: "columnColCount",
     columnMinWidth: "columnMinWidth",
 
@@ -413,6 +426,7 @@ export var enStrings = {
     keyDuplicationError: "keyDuplicationError",
     confirmDelete: "confirmDelete",
     confirmDeleteText: "confirmDeleteText",
+    addRowLocation: "addRowLocation",
     addRowText: "addRowText",
     removeRowText: "removeRowText",
 
@@ -477,7 +491,17 @@ export var enStrings = {
     isSinglePage: "isSinglePage",
     maxTimeToFinishPage: "maxTimeToFinishPage",
     showTimerPanel: "showTimerPanel",
-    showTimerPanelMode: "showTimerPanelMode"
+    showTimerPanelMode: "showTimerPanelMode",
+
+    text: "text",
+    minValue: "minimum value",
+    maxValue: "maximum value",
+    minLength: "minumum length",
+    maxLength: "maximum length",
+    allowDigits: "allow digits",
+    minCount: "minumum count",
+    maxCount: "maximum count",
+    regex: "regular expression"
   }
 };
 //Uncomment this line on creating a translation file. You should replace "en" and enStrings with your locale ("fr", "de" and so on) and your variable.
