@@ -31,3 +31,4 @@ _site/
 /doc_generator/*.json
 *.env
 svgbundle.html
+.DS_Store
