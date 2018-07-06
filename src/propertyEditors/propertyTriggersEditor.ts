@@ -4,6 +4,7 @@ import { SurveyPropertyItemsEditor } from "./propertyItemsEditor";
 import { SurveyPropertyEditorBase } from "./propertyEditorBase";
 import { editorLocalization } from "../editorLocalization";
 import { SurveyPropertyEditorFactory } from "./propertyEditorFactory";
+import { SurveyPropertyConditionEditor } from "./propertyConditionEditor";
 
 export class SurveyPropertyTriggersEditor extends SurveyPropertyItemsEditor {
   koElements: any;
@@ -126,6 +127,7 @@ export class SurveyPropertyTriggersEditor extends SurveyPropertyItemsEditor {
     trigger: Survey.SurveyTrigger
   ): SurveyPropertyTrigger {
     var triggerItem = null;
+    trigger["survey"] = this.object;
     if (trigger.getType() == "visibletrigger") {
       triggerItem = new SurveyPropertyVisibleTrigger(
         <Survey.SurveyTriggerVisible>trigger,
@@ -155,6 +157,7 @@ export class SurveyPropertyTrigger {
   koText: any;
   koIsValid: any;
   koRequireValue: any;
+  conditionEditor: SurveyPropertyConditionEditor = null;
 
   constructor(public trigger: Survey.SurveyTrigger) {
     this.availableOperators = SurveyPropertyEditorFactory.getOperators();
@@ -163,11 +166,29 @@ export class SurveyPropertyTrigger {
     this.koName = ko.observable(trigger.name);
     this.koOperator = ko.observable(trigger.operator);
     this.koValue = ko.observable(trigger.value);
+    var expressionProperty = Survey.JsonObject.metaData.findProperty(
+      "trigger",
+      "expression"
+    );
+    if (expressionProperty) {
+      this.conditionEditor = new SurveyPropertyConditionEditor(
+        expressionProperty
+      );
+      this.conditionEditor.showHelpText = false;
+      if (!this.trigger.expression) {
+        this.trigger.expression = this.trigger.buildExpression();
+      }
+      this.conditionEditor.object = this.trigger;
+    }
     var self = this;
     this.koRequireValue = ko.computed(() => {
       return self.koOperator() != "empty" && self.koOperator() != "notempty";
     });
     this.koIsValid = ko.computed(() => {
+      if (!!this.conditionEditor) {
+        var text = self.conditionEditor.koTextValue();
+        return !!text;
+      }
       if (self.koName() && (!self.koRequireValue() || self.koValue()))
         return true;
       return false;
@@ -180,17 +201,27 @@ export class SurveyPropertyTrigger {
     });
   }
   public createTrigger(): Survey.SurveyTrigger {
-    var trigger = <Survey.SurveyTrigger>Survey.JsonObject.metaData.createClass(
-      this.triggerType
+    var trigger = <Survey.SurveyTrigger>(
+      Survey.JsonObject.metaData.createClass(this.triggerType)
     );
-    trigger.name = this.koName();
-    trigger.operator = this.koOperator();
-    trigger.value = this.koValue();
+    if (!!this.conditionEditor) {
+      trigger["expression"] = this.conditionEditor.koTextValue();
+    } else {
+      //TODO remove else code
+      trigger.name = this.koName();
+      trigger.operator = this.koOperator();
+      trigger.value = this.koValue();
+    }
     return trigger;
   }
   private getText(): string {
     if (!this.koIsValid())
       return editorLocalization.getString("pe.triggerNotSet");
+    if (!!this.conditionEditor) {
+      var res = this.conditionEditor.koTextValue();
+      if (!res) return "";
+      return editorLocalization.getString("pe.triggerRunIf") + ": " + res;
+    }
     return (
       editorLocalization.getString("pe.triggerRunIf") +
       " '" +
