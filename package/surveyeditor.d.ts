@@ -1,4 +1,4 @@
-/*Type definitions for Surveyjs Builder(Editor) JavaScript library v1.0.29
+/*Type definitions for Surveyjs Builder(Editor) JavaScript library v1.0.30
 (c) Devsoft Baltic O� - http://surveyjs.io/
 Github: https://github.com/surveyjs/editor
 License: https://surveyjs.io/Licenses#BuildSurvey
@@ -38,6 +38,7 @@ export declare var enStrings: {
         default: string;
         checkbox: string;
         comment: string;
+        imagepicker: string;
         dropdown: string;
         file: string;
         html: string;
@@ -126,6 +127,8 @@ export declare var enStrings: {
         propertyIsEmpty: string;
         value: string;
         text: string;
+        rowid: string;
+        imageLink: string;
         columnEdit: string;
         itemEdit: string;
         url: string;
@@ -150,7 +153,7 @@ export declare var enStrings: {
         imageHeight: string;
         imageWidth: string;
         rowCount: string;
-        columnsLocation: string;
+        columnLayout: string;
         addRowLocation: string;
         addRowText: string;
         removeRowText: string;
@@ -162,6 +165,7 @@ export declare var enStrings: {
         cellsDefaultRow: string;
         surveyEditorTitle: string;
         qEditorTitle: string;
+        maxLength: string;
         showTitle: string;
         locale: string;
         mode: string;
@@ -401,7 +405,7 @@ export declare var enStrings: {
         isAllRowRequired: string;
         horizontalScroll: string;
         cellType: string;
-        columnsLocation: string;
+        columnsLayout: string;
         columnColCount: string;
         columnMinWidth: string;
         rowCount: string;
@@ -472,6 +476,10 @@ export declare var enStrings: {
         maxTimeToFinishPage: string;
         showTimerPanel: string;
         showTimerPanelMode: string;
+        defaultPanelValue: string;
+        defaultRowValue: string;
+        hasNone: string;
+        noneText: string;
         text: string;
         minValue: string;
         maxValue: string;
@@ -514,6 +522,7 @@ export declare var defaultStrings: {
         default: string;
         checkbox: string;
         comment: string;
+        imagepicker: string;
         dropdown: string;
         file: string;
         html: string;
@@ -602,6 +611,8 @@ export declare var defaultStrings: {
         propertyIsEmpty: string;
         value: string;
         text: string;
+        rowid: string;
+        imageLink: string;
         columnEdit: string;
         itemEdit: string;
         url: string;
@@ -626,7 +637,7 @@ export declare var defaultStrings: {
         imageHeight: string;
         imageWidth: string;
         rowCount: string;
-        columnsLocation: string;
+        columnLayout: string;
         addRowLocation: string;
         addRowText: string;
         removeRowText: string;
@@ -638,6 +649,7 @@ export declare var defaultStrings: {
         cellsDefaultRow: string;
         surveyEditorTitle: string;
         qEditorTitle: string;
+        maxLength: string;
         showTitle: string;
         locale: string;
         mode: string;
@@ -877,7 +889,7 @@ export declare var defaultStrings: {
         isAllRowRequired: string;
         horizontalScroll: string;
         cellType: string;
-        columnsLocation: string;
+        columnsLayout: string;
         columnColCount: string;
         columnMinWidth: string;
         rowCount: string;
@@ -948,6 +960,10 @@ export declare var defaultStrings: {
         maxTimeToFinishPage: string;
         showTimerPanel: string;
         showTimerPanelMode: string;
+        defaultPanelValue: string;
+        defaultRowValue: string;
+        hasNone: string;
+        noneText: string;
         text: string;
         minValue: string;
         maxValue: string;
@@ -1113,24 +1129,19 @@ export declare class SurveyNumberPropertyEditor extends SurveyPropertyEditorBase
 }
 
 export declare class SurveyPropertyTextItemsEditor extends SurveyNestedPropertyEditor {
-    isTitleVisible: boolean;
     constructor(property: Survey.JsonObjectProperty);
     readonly editorType: string;
     protected getEditorName(): string;
     protected createNewEditorItem(): any;
     protected createEditorItem(item: any): SurveyPropertyTextItemsItem;
     protected createItemFromEditorItem(editorItem: any): any;
+    protected getProperties(): Array<Survey.JsonObjectProperty>;
 }
 export declare class SurveyPropertyTextItemsItem extends SurveyNestedPropertyEditorItem {
     item: Survey.MultipleTextItem;
-    koName: any;
-    koTitle: any;
-    koIsRequired: any;
-    koHasError: any;
-    constructor(item: Survey.MultipleTextItem, options: ISurveyObjectEditorOptions);
+    columns: Array<SurveyNestedPropertyEditorColumn>;
+    constructor(item: Survey.MultipleTextItem, columns: Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions);
     protected createSurveyQuestionEditor(): SurveyQuestionEditor;
-    hasError(): boolean;
-    apply(): void;
 }
 
 export declare class SurveyPropertyItemsEditor extends SurveyPropertyModalEditor {
@@ -1160,7 +1171,6 @@ export declare class SurveyPropertyItemsEditor extends SurveyPropertyModalEditor
 }
 
 export declare class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
-    koActiveView: any;
     koItemsText: any;
     koShowTextView: any;
     changeToTextViewClick: any;
@@ -1168,7 +1178,6 @@ export declare class SurveyPropertyItemValuesEditor extends SurveyNestedProperty
     constructor(property: Survey.JsonObjectProperty);
     readonly editorType: string;
     readonly hasDetailButton: boolean;
-    readonly columns: Array<SurveyNestedPropertyEditorColumn>;
     protected getItemValueClassName(): string;
     protected getEditorName(): string;
     protected checkForErrors(): boolean;
@@ -1209,13 +1218,16 @@ export declare class SurveyPropertyMultipleValuesEditor extends SurveyPropertyMo
 export declare class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
     koEditItem: any;
     koIsList: any;
+    koActiveView: any;
     onEditItemClick: any;
     onCancelEditItemClick: any;
     koEditorName: any;
     constructor(property: Survey.JsonObjectProperty);
+    readonly columns: Array<SurveyNestedPropertyEditorColumn>;
     beforeShow(): void;
-    protected createColumns(): Array<SurveyNestedPropertyEditorColumn>;
+    protected createColumns(): void;
     protected getProperties(): Array<Survey.JsonObjectProperty>;
+    protected getPropertiesNames(definitionName: string, defaultNames: Array<string>): Array<string>;
     protected getPropertiesByNames(className: string, names: Array<any>): Array<Survey.JsonObjectProperty>;
     protected getEditorName(): string;
     protected onListDetailViewChanged(): void;
@@ -1253,14 +1265,12 @@ export declare class SurveyNestedPropertyEditorEditorCell {
 export declare class SurveyPropertyDropdownColumnsEditor extends SurveyNestedPropertyEditor {
     constructor(property: Survey.JsonObjectProperty);
     readonly editorType: string;
-    readonly columns: Array<SurveyNestedPropertyEditorColumn>;
     protected getEditorName(): string;
     protected createNewEditorItem(): any;
     protected createEditorItem(item: any): SurveyPropertyMatrixDropdownColumnsItem;
     protected createItemFromEditorItem(editorItem: any): any;
     protected createEditorItemCore(item: any): Survey.MatrixDropdownColumn;
     protected getProperties(): Array<Survey.JsonObjectProperty>;
-    protected getPropertiesNames(): Array<string>;
 }
 export declare class SurveyPropertyMatrixDropdownColumnsItem extends SurveyNestedPropertyEditorItem {
     column: Survey.MatrixDropdownColumn;
@@ -1320,6 +1330,7 @@ export declare class SurveyPropertyHtmlEditor extends SurveyPropertyTextEditor {
 export declare class SurveyPropertyConditionEditor extends SurveyPropertyTextEditor {
     syntaxCheckMethodName: string;
     availableOperators: any[];
+    showHelpText: boolean;
     koIsValid: any;
     koCanAddCondition: any;
     koAddConditionQuestions: any;
@@ -1337,7 +1348,7 @@ export declare class SurveyPropertyConditionEditor extends SurveyPropertyTextEdi
     setObject(value: any): void;
     readonly editorType: string;
     readonly availableQuestions: any[];
-    readonly allCondtionQuestions: any[];
+    readonly allConditionQuestions: any[];
     readonly hasAceEditor: boolean;
     readonly addConditionQuestionOptions: string;
     addCondition(): void;
@@ -1423,6 +1434,7 @@ export declare class SurveyPropertyTrigger {
     koText: any;
     koIsValid: any;
     koRequireValue: any;
+    conditionEditor: SurveyPropertyConditionEditor;
     constructor(trigger: Survey.SurveyTrigger);
     createTrigger(): Survey.SurveyTrigger;
 }
@@ -1859,7 +1871,7 @@ export declare enum ObjType {
     Survey = 1,
     Page = 2,
     Panel = 3,
-    Question = 4,
+    Question = 4
 }
 export declare class SurveyHelper {
     static getNewPageName(objs: Array<any>): string;
@@ -2485,10 +2497,10 @@ export declare class SurveysManager {
     currentSurvey: KnockoutObservable<ISurveyInfo>;
     currentSurveyName: KnockoutObservable<string>;
     isLoading: KnockoutObservable<boolean>;
-    readonly cssEdit: string;
-    readonly cssAdd: string;
-    readonly titleEdit: string;
-    readonly titleAdd: string;
+    readonly cssEdit: "icon-saved" | "icon-edit";
+    readonly cssAdd: "icon-new" | "icon-fork";
+    readonly titleEdit: "Save survey name" | "Edit survey name";
+    readonly titleAdd: "Add new survey" | "Fork this survey";
     nameEditorKeypress: (model: any, event: any) => void;
 }
 
@@ -2502,6 +2514,9 @@ export declare class StylesManager {
         };
     };
     static ThemeCss: {
+        [key: string]: string;
+    };
+    static BootstrapMaterialThemeCss: {
         [key: string]: string;
     };
     static addThemeColors(themeName: string, themeColors: Object): void;

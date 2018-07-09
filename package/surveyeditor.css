@@ -1,5 +1,5 @@
 /*!
- * surveyjs Builder(Editor) v1.0.29
+ * surveyjs Builder(Editor) v1.0.30
  * (c) Devsoft Baltic O� - http://surveyjs.io/
  * Github: https://github.com/surveyjs/editor
  * License: https://surveyjs.io/Licenses#BuildSurvey
@@ -549,24 +549,15 @@
     margin-top: -3px;
     margin-bottom: 0; }
 
-.svd_container.sv_bootstrapmaterial_css .editor-tabs > li > a {
-  color: #676a6c !important; }
-
-.svd_container.sv_bootstrapmaterial_css .editor-tabs > li > a:hover {
-  color: #1ab394 !important;
-  background-color: #f4f4f4 !important;
-  border-bottom: 1px solid #f4f4f4 !important; }
-
-.svd_container.sv_bootstrapmaterial_css .editor-tabs > li > a:focus {
-  color: #1ab394 !important;
-  background-color: #f4f4f4 !important;
-  border-bottom: 1px solid #f4f4f4 !important; }
-
-.svd_container.sv_bootstrapmaterial_css .editor-tabs > li.active > a {
-  color: #1ab394 !important;
-  background-color: #f4f4f4 !important;
-  border: 1px solid #e7eaec !important;
-  border-bottom-color: #f4f4f4 !important; }
+.svd_container.sv_bootstrapmaterial_css .svd_properties_grid .glyphicon-edit {
+  border-radius: 0;
+  background-color: #1ab394;
+  color: white;
+  text-transform: uppercase;
+  padding: 5px;
+  font-size: 12px; }
+  .svd_container.sv_bootstrapmaterial_css .svd_properties_grid .glyphicon-edit:hover {
+    background-color: rgba(153, 153, 153, 0.2); }
 
 .svd_container.sv_bootstrapmaterial_css .item_editable > span {
   position: static;
@@ -576,6 +567,43 @@
   position: static;
   display: inline-block;
   transition: none; }
+
+.svd_container.sv_bootstrapmaterial_css .modal-footer .btn + .btn {
+  margin-bottom: 10px; }
+
+.svd_container.sv_bootstrapmaterial_css .propertyeditor-condition textarea {
+  color: #676a6c; }
+
+.svd_container.sv_bootstrapmaterial_css select.svda_current_type {
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  appearance: menulist; }
+
+.svd_container.sv_bootstrapmaterial_css .svd_question {
+  border: 1px solid #e7eaec; }
+
+.svd_container.sv_bootstrapmaterial_css .modal-content .form-group .sjs-cb-wrapper {
+  margin-bottom: 6px; }
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-group .sjs-cb-wrapper:last-child {
+    margin-bottom: 0; }
+
+.svd_container.sv_bootstrapmaterial_css .modal-content .btn-danger {
+  color: #676a6c; }
+  .svd_container.sv_bootstrapmaterial_css .modal-content .btn-danger:hover {
+    opacity: 0.5; }
+
+@media (min-width: 768px) {
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-inline .checkbox input[type="checkbox"],
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-inline .radio input[type="radio"] {
+    position: absolute;
+    margin-left: 0; }
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-inline .checkbox span,
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-inline .radio span {
+    top: 4px; }
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-inline .checkbox label,
+  .svd_container.sv_bootstrapmaterial_css .modal-content .form-inline .radio label {
+    padding-left: 45px;
+    margin-bottom: 10px; } }
 
 .svd_container {
   position: relative;
@@ -587,6 +615,9 @@
     margin-bottom: 3px; }
   .svd_container #surveyjs .svd_question {
     overflow: visible; }
+  .svd_container #surveyjs .sv_main .sv_custom_header,
+  .svd_container #surveyjsExample .sv_main .sv_custom_header {
+    background-color: transparent; }
   .svd_container .svd-textitems-column {
     width: 100%;
     display: inline-block; }

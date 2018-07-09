@@ -1,6 +1,6 @@
 {
   "name": "surveyjs-editor",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Use surveyjs Builder(Editor) to create or edit JSON for surveyjs library.",
   "keywords": [
     "Survey",
@@ -32,7 +32,7 @@
     "ace-builds": "^1.2.2"
   },
   "dependencies": {
-    "survey-knockout": "^1.0.29",
+    "survey-knockout": "^1.0.30",
     "knockout": "^3.4.0",
     "@types/knockout": "^3.4.0"
   },
