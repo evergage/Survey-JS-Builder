@@ -7,255 +7,34 @@ if (!!ko.options) {
 }
 
 export class DragDropTargetElement {
-  public moveToParent: any;
-  public moveToIndex: number;
   public nestedPanelDepth: number = -1;
   constructor(
     public page: Survey.Page,
     public target: any,
     public source: any
-  ) {}
+  ) {
+    page.dragDropStart(source, target); //, DragDropTargetElement.nestedPanelPath);
+  }
   public moveTo(
     destination: any,
     isBottom: boolean,
     isEdge: boolean = false
   ): boolean {
-    //console.log("dest: " + destination.name + ", isBottom:" + isBottom + ", isEdge:" + isEdge);
-    isEdge = isEdge || !destination.isPanel;
-    if (destination === this.target) return !this.target.isPanel;
-    var destInfo = this.findInfo(destination, isEdge);
-    if (!destInfo) {
-      this.clear();
-      return false;
-    }
-    var targetInfo = this.findInfo(this.target, true);
-    this.updateInfo(destInfo, isBottom, isEdge);
-    if (this.isInfoEquals(targetInfo, destInfo)) return true;
-    this.clearByInfo(targetInfo);
-    destInfo = this.findInfo(destination, isEdge);
-    if (!destInfo) return false;
-    this.updateInfo(destInfo, isBottom, isEdge);
-    if (!this.canMove(destInfo)) return false;
-    this.addInfo(destInfo);
-    return true;
+    //console.log(!!destination ? destination.name : "null");
+    return this.page.dragDropMoveTo(destination, isBottom, isEdge);
   }
   public doDrop(): any {
-    var destInfo = this.findInfo(this.target);
-    if (!destInfo) return;
-    var index = this.getIndexByInfo(destInfo);
-    var newElement = this.getNewTargetElement();
-    this.moveToParent = destInfo.panel;
-    this.moveToIndex = index;
-    destInfo.panel.addElement(newElement, index);
-    if (this.source) {
-      var srcInfo = this.findInfo(this.source, true);
-      var panel = srcInfo ? srcInfo.panel : this.page;
-      panel.removeElement(this.source);
-    }
-    return newElement;
+    this.clearCore();
+    return this.page.dragDropFinish();
   }
   public clear() {
-    this.clearByInfo(this.findInfo(this.target, true));
+    this.clearCore();
+    this.page.dragDropFinish(true);
   }
-  private getIndexByInfo(info: any) {
-    if (!info) return 0;
-    var rows = info.panel.koRows();
-    var index = 0;
-    for (var i = 0; i < info.rIndex; i++) {
-      index += rows[i]["koElements"]().length;
+  private clearCore() {
+    if (!!this.target) {
+      this.target["koIsDragging"](false);
     }
-    return index + info.elIndex;
-  }
-  private canMove(destInfo: any): boolean {
-    if (this.target.isPanel && destInfo.element) {
-      if (
-        this.target == destInfo.element ||
-        this.target.containsElement(destInfo.element)
-      )
-        return false;
-      if (
-        this.source &&
-        (this.source == destInfo.element ||
-          this.source.containsElement(destInfo.element))
-      )
-        return false;
-    }
-    if (!this.source) return true;
-    var srcInfo = this.findInfo(this.source);
-    if (srcInfo == null || srcInfo.panel != destInfo.panel) return true;
-    var srcIndex = this.getIndexByInfo(srcInfo);
-    var destIndex = this.getIndexByInfo(destInfo);
-    var diff = destIndex - srcIndex;
-    return diff < 0 || diff > 1;
-  }
-  private isLastElementInRow(info: any) {
-    return (
-      info.elIndex ==
-      info.panel["koRows"]()[info.rIndex]["koElements"]().length - 1
-    );
-  }
-  private updateInfo(info: any, isBottom: boolean, isEdge: boolean) {
-    if (info.rIndex < 0) return;
-    if (this.target.startWithNewLine) {
-      if (isBottom) info.rIndex++;
-    } else {
-      if (isBottom) {
-        info.elIndex++;
-      } else {
-        if (info.elIndex == 0 && info.rIndex > 0) {
-          info.rIndex--;
-          info.elIndex = info.panel["koRows"]()[info.rIndex][
-            "koElements"
-          ]().length;
-        }
-      }
-    }
-  }
-  private addInfo(info: any) {
-    if (this.target.isPanel) {
-      this.target.parent = info.panel;
-    }
-    if (
-      this.target.startWithNewLine ||
-      info.elIndex < 1 ||
-      info.rIndex < 0 ||
-      info.rIndex >= info.panel.koRows().length
-    ) {
-      this.AddInfoAsRow(info);
-    } else {
-      var row = info.panel.koRows()[info.rIndex];
-      var elements = row["koElements"]();
-      if (info.elIndex < elements.length) {
-        elements.splice(info.elIndex, 0, this.target);
-      } else {
-        elements.push(this.target);
-      }
-      row["koElements"](elements);
-      row.updateVisible();
-    }
-  }
-  private AddInfoAsRow(info: any) {
-    var row = new Survey.QuestionRow(info.panel);
-    row.addElement(this.target);
-    var rows = info.panel.koRows();
-    if (info.rIndex >= 0 && info.rIndex < info.panel.koRows().length) {
-      rows.splice(info.rIndex, 0, row);
-    } else {
-      rows.push(row);
-    }
-    info.panel.koRows(rows);
-  }
-  private clearByInfo(info: any) {
-    if (info == null) return;
-    var rows = info.panel.koRows();
-    if (info.rIndex < 0 || info.rIndex >= rows.length) return;
-    var row = rows[info.rIndex];
-    var elements = row["koElements"]();
-    if (row["koElements"]().length > 1) {
-      elements.splice(info.elIndex, 1);
-      row["koElements"](elements);
-      row.updateVisible();
-    } else {
-      rows.splice(info.rIndex, 1);
-      info.panel.koRows(rows);
-    }
-  }
-  private isInfoEquals(a: any, b: any): boolean {
-    if (a == null || b == null) return false;
-    return (
-      a.panel === b.panel && a.rIndex === b.rIndex && a.elIndex === b.elIndex
-    );
-  }
-  private findInfo(el: any, isEdge: boolean = false): any {
-    var res = this.findInfoInPanel(this.page, el, isEdge, el);
-    if (
-      res &&
-      this.target &&
-      this.target.isPanel &&
-      this.nestedPanelDepth > -1
-    ) {
-      var parents = this.getParentElements(res.panel);
-      if (this.nestedPanelDepth + 1 < parents.length) {
-        res.panel = parents[this.nestedPanelDepth];
-        res.element = parents[this.nestedPanelDepth + 1];
-      }
-    }
-    return res;
-  }
-  private getParentElements(panel: any): Array<any> {
-    var res = [];
-    while (panel) {
-      res.unshift(panel);
-      panel = panel.parent;
-    }
-    return res;
-  }
-
-  private findInfoInPanel(
-    panel: Survey.PanelModelBase,
-    el: any,
-    isEdge: boolean,
-    root: any
-  ): any {
-    if (el == panel) {
-      var parent = panel;
-      if (
-        panel.parent &&
-        (isEdge ||
-          (root &&
-            this.target &&
-            root.name == this.target.name &&
-            this.target.isPanel))
-      ) {
-        parent = panel.parent;
-      }
-      return { panel: parent, rIndex: 0, elIndex: 0, element: panel };
-    }
-    var rows = panel["koRows"]();
-    for (var i = 0; i < rows.length; i++) {
-      var row = rows[i];
-      var elements = row["koElements"]();
-      for (var j = 0; j < elements.length; j++) {
-        var element = elements[j];
-        if (element.isPanel) {
-          var res = this.findInfoInPanel(element, el, isEdge, root);
-          if (res) {
-            if (res.element == element) {
-              res.rIndex = i;
-              res.elIndex = j;
-            }
-            return res;
-          }
-        }
-        if (element == el)
-          return { panel: panel, rIndex: i, elIndex: j, element: element };
-        //TODO refactor!!!
-        if (!element.isPanel) {
-          var childElements = this.getElements(element);
-          for (var k = 0; k < childElements.length; k++) {
-            if (childElements[k].isPanel) {
-              var res = this.findInfoInPanel(
-                childElements[k],
-                el,
-                isEdge,
-                root
-              );
-              if (res) return res;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-  private getNewTargetElement(): any {
-    var result = Survey.JsonObject.metaData.createClass(this.target.getType());
-    var json = new Survey.JsonObject().toJsonObject(this.target);
-    new Survey.JsonObject().toObject(json, result);
-    return result;
-  }
-  private getElements(element: any): Array<any> {
-    return SurveyHelper.getElements(element, true);
   }
 }
 
@@ -300,7 +79,11 @@ export class DragDropHelper {
     };
     domElement.ondragstart = function(e: DragEvent) {
       var target: any = e.target || e.srcElement;
-      if (!!target && target.contains(document.activeElement)) {
+      if (
+        !!target &&
+        !!target.contains &&
+        target.contains(document.activeElement)
+      ) {
         e.preventDefault();
         return false;
       }
@@ -321,15 +104,14 @@ export class DragDropHelper {
   public startDragQuestion(event: DragEvent, element: any) {
     var json = new Survey.JsonObject().toJsonObject(element);
     json["type"] = element.getType();
-    this.prepareData(event, element.name, json);
-    this.ddTarget.source = element;
+    this.prepareData(event, element.name, json, element);
   }
   public startDragToolboxItem(
     event: DragEvent,
     elementName: string,
     elementJson: any
   ) {
-    this.prepareData(event, elementName, elementJson);
+    this.prepareData(event, elementName, elementJson, null);
     event.cancelBubble = true;
   }
   public isSurveyDragging(event: DragEvent): boolean {
@@ -351,24 +133,18 @@ export class DragDropHelper {
       this.isSamePlace(event, element)
     )
       return;
+    var bottomInfo = this.isBottom(event);
+    if (element.isPage && element.elements.length > 0) {
+      var lastEl = element.elements[element.elements.length - 1];
+      if (!this.isBottomThanElement(event, lastEl)) return;
+      element = lastEl;
+      bottomInfo.isEdge = true;
+      bottomInfo.isBottom = true;
+    }
 
-    element = this.replaceTargetElement(element);
-
-    var bottomInfo = this.isBottom(event, element);
     isEdge = element.isPanel ? isEdge && bottomInfo.isEdge : true;
     if (element.isPanel && !isEdge && element.elements.length > 0) return;
     this.ddTarget.moveTo(element, bottomInfo.isBottom, isEdge);
-  }
-  public replaceTargetElement(element) {
-    if (
-      element.getType &&
-      element.getType() === "page" &&
-      element.elements.length !== 0
-    ) {
-      var elements = element.elements;
-      element = elements[elements.length - 1];
-    }
-    return element;
   }
   public end() {
     if (this.ddTarget) {
@@ -394,14 +170,16 @@ export class DragDropHelper {
           source: this.ddTarget.source,
           target: this.ddTarget.target,
           newElement: this.ddTarget.source ? null : newElement,
-          moveToParent: this.ddTarget.moveToParent,
-          moveToIndex: this.ddTarget.moveToIndex
+          moveToParent: newElement.parent,
+          moveToIndex: !!newElement.parent
+            ? newElement.parent.elements.indexOf(newElement)
+            : -1
         });
     }
     this.end();
   }
   public doLeavePage(event: DragEvent) {
-    this.ddTarget.clear();
+    this.ddTarget.moveTo(null, false);
   }
   public scrollToElement(el: HTMLElement) {
     if (!this.scrollableElement || !el) return;
@@ -422,7 +200,7 @@ export class DragDropHelper {
     targetElement["koIsDragging"](true);
     return targetElement;
   }
-  private isBottom(event: DragEvent, surveyEl: any): any {
+  private isBottom(event: DragEvent): any {
     event = this.getEvent(event);
     var height = <number>event.currentTarget["clientHeight"];
     var y = event.offsetY;
@@ -436,6 +214,17 @@ export class DragDropHelper {
         y <= DragDropHelper.edgeHeight ||
         height - y <= DragDropHelper.edgeHeight
     };
+  }
+  private isBottomThanElement(event: DragEvent, lastEl: any): boolean {
+    var el = lastEl.renderedElement;
+    if (!el) return false;
+    event = this.getEvent(event);
+    var elY = <number>el.offsetTop + <number>el.clientHeight;
+    var y = event.offsetY;
+    if (event.hasOwnProperty("layerX")) {
+      y = event.layerY - <number>event.currentTarget["offsetTop"];
+    }
+    return y > elY;
   }
   private isSameCoordinates(event: DragEvent): boolean {
     var res =
@@ -521,14 +310,19 @@ export class DragDropHelper {
     }
     return result;
   }
-  private prepareData(event: DragEvent, elementName: string, json) {
+  private prepareData(
+    event: DragEvent,
+    elementName: string,
+    json: any,
+    source: Survey.IElement
+  ) {
     var str = DragDropHelper.dataStart + "questionname:" + elementName;
     this.setData(event, str);
     var targetElement = this.createTargetElement(elementName, json);
     this.ddTarget = new DragDropTargetElement(
       <Survey.Page>this.survey.currentPage,
       targetElement,
-      null
+      source
     );
     this.ddTarget.nestedPanelDepth = DragDropHelper.nestedPanelDepth;
   }
@@ -555,7 +349,7 @@ export class DragDropHelper {
     return DragDropHelper.dragData;
   }
   private clearData() {
-    //this.ddTarget = null;
+    this.ddTarget = null; // We should reset ddTarget to null due to the https://surveyjs.answerdesk.io/ticket/details/T1003 - onQuestionAdded not fired after D&D
     DragDropHelper.dragData = { text: "", json: null };
     var prev = DragDropHelper.prevEvent;
     prev.element = null;

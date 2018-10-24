@@ -109,9 +109,13 @@ function getSurvey(el: any): any {
 function panelBaseOnCreating(self: any) {
   self.dragEnterCounter = 0;
   self.emptyElement = null;
-  self.koRows.subscribe(function(changes) {
+  self.rowCount = ko.computed(function() {
+    var rows = !!self["koRow"] ? self["koRows"]() : self.rows;
+    return rows.length;
+  }, self);
+  self.rowCount.subscribe(function(value) {
     if (self.emptyElement) {
-      self.emptyElement.style.display = self.koRows().length > 0 ? "none" : "";
+      self.emptyElement.style.display = value > 0 ? "none" : "";
     }
   });
 }
@@ -210,12 +214,19 @@ function elementOnAfterRendering(
       "svd-main-border-color"
     );
   surveyElement.dragDropHelper().attachToElement(domElement, surveyElement);
+  domElement.tabindex = "0";
   domElement.onclick = function(e) {
     if (!e["markEvent"]) {
       e["markEvent"] = true;
       if (surveyElement.parent) {
         getSurvey(surveyElement)["selectedElement"] = surveyElement;
       }
+    }
+  };
+  domElement.onkeyup = function(e) {
+    var char = e.which || e.keyCode;
+    if (char === 0x13 || char === 0x20) {
+      domElement.click();
     }
   };
   // el.onkeydown = function(e) {
@@ -232,6 +243,16 @@ function elementOnAfterRendering(
       if (childs[i].style) childs[i].style.pointerEvents = "none";
     }
   }
+  var setTabIndex = element => {
+    element.tabIndex = -1;
+  };
+  ["input", "select", "textarea"].forEach(sel => {
+    var elements = domElement.querySelectorAll(sel);
+    for (var i = 0; i < elements.length; i++) {
+      setTabIndex(elements[i]);
+    }
+  });
+
   addAdorner(domElement, surveyElement);
 }
 
@@ -255,8 +276,12 @@ function onUpdateQuestionCssClasses(survey, options) {
   var classes = options.panel ? options.cssClasses.panel : options.cssClasses;
   Object.keys(adornersConfig).forEach(element => {
     adornersConfig[element].forEach(adorner => {
-      var classesElementName = adorner.getElementName(options.question || options.panel);
-      var adornerMarkerClass = adorner.getMarkerClass(options.question || options.panel);
+      var classesElementName = adorner.getElementName(
+        options.question || options.panel
+      );
+      var adornerMarkerClass = adorner.getMarkerClass(
+        options.question || options.panel
+      );
 
       classes[classesElementName] = applyAdornerClass(
         classes[classesElementName],
@@ -295,6 +320,14 @@ function addAdorner(node, model) {
         var elements = node.querySelectorAll(
           "." + elementClass.replace(/\s/g, ".")
         );
+        var temp = [];
+        for (var i = 0; i < elements.length; i++) {
+          temp.push(elements[i]);
+        }
+        elements = temp;
+        if (node.className.split(" ").indexOf(elementClass) !== -1) {
+          elements.unshift(node);
+        }
         elements = filterNestedQuestions(node, elements);
         if (
           elements.length === 0 &&
@@ -333,9 +366,6 @@ Survey.Page.prototype["onAfterRenderPage"] = function(el) {
   el.ondrop = function(e) {
     dragDropHelper.doDrop(e);
   };
-  // if (this.elements.length == 0) {
-  //   this.emptyElement = addEmptyPanelElement(el, dragDropHelper, self);
-  // }
 };
 
 Survey.Panel.prototype["onCreating"] = function() {
@@ -345,7 +375,6 @@ Survey.Panel.prototype["onCreating"] = function() {
 
 Survey.Panel.prototype["onAfterRenderPanel"] = function(el) {
   if (!getSurvey(this).isDesignMode) return;
-  var rows = this.koRows();
   var self = this;
   if (this.elements.length == 0) {
     this.emptyElement = addEmptyPanelElement(el, self.dragDropHelper(), self);
@@ -358,16 +387,26 @@ Survey.Panel.prototype["onSelectedElementChanged"] = function() {
   this.koIsSelected(getSurvey(this)["selectedElementValue"] == this);
 };
 
-Survey.QuestionBase.prototype["onCreating"] = function() {
+var questionPrototype = !!Survey["QuestionBase"]
+  ? Survey["QuestionBase"].prototype
+  : Survey.Question.prototype;
+
+questionPrototype["onCreating"] = function() {
   elementOnCreating(this);
 };
 
-Survey.QuestionBase.prototype["onAfterRenderQuestion"] = function(el) {
+questionPrototype["onAfterRenderQuestion"] = function(el) {
   if (!getSurvey(this).isDesignMode) return;
   elementOnAfterRendering(el, this, false, true);
 };
 
-Survey.QuestionBase.prototype["onSelectedElementChanged"] = function() {
+questionPrototype["onSelectedElementChanged"] = function() {
   if (getSurvey(this) == null) return;
   this.koIsSelected(getSurvey(this)["selectedElementValue"] == this);
+};
+
+Survey.QuestionSelectBaseImplementor.prototype["onCreated"] = function() {
+  (<any>this.question)["koVisibleChoices"].subscribe(() => {
+    (<any>this.question)["koElementType"].notifySubscribers();
+  });
 };

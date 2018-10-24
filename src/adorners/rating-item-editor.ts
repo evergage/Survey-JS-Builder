@@ -77,18 +77,20 @@ ko.components.register("rating-item-editor", {
 
 var createAddItemHandler = (
   question: Survey.QuestionRating,
-  onItemAdded: (itemValue: Survey.ItemValue) => void
+  onItemAdded: (itemValue: Survey.ItemValue) => void,
+  onItemAdding: (itemValue: Survey.ItemValue) => void = null
 ) => () => {
   if (question.rateValues.length === 0) {
     question.rateMax += question.rateStep;
   } else {
     var nextValue = null;
-    var values = question.rateValues.map(function (item) {
+    var values = question.rateValues.map(function(item) {
       return item.itemValue;
     });
     nextValue = getNextValue("item", values);
 
     var itemValue = new Survey.ItemValue(nextValue);
+    !!onItemAdding && onItemAdding(itemValue);
     itemValue.locOwner = <any>{
       getLocale: () => {
         if (!!question["getLocale"]) return question.getLocale();
@@ -138,8 +140,23 @@ export var ratingItemAdorner = {
     addNew.title = editorLocalization.getString("pe.addItem");
     addNew.className =
       "svda-add-new-rating-item icon-inplace-add-item svd-primary-icon";
-    addNew.onclick = createAddItemHandler(model, itemValue =>
-      editor.onQuestionEditorChanged(model)
+    addNew.onclick = createAddItemHandler(
+      model,
+      itemValue => {
+        editor.onQuestionEditorChanged(model);
+        editor.onItemValueAddedCallback(
+          "rateValues",
+          itemValue,
+          model.visibleRateValues
+        );
+      },
+      itemValue => {
+        editor.onItemValueAddedCallback(
+          "rateValues",
+          itemValue,
+          model.visibleRateValues
+        );
+      }
     );
     var svgElem: any = document.createElementNS(
       "http://www.w3.org/2000/svg",

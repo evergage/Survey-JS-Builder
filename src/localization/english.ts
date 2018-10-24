@@ -36,6 +36,7 @@ export var enStrings = {
   },
   //Strings in Editor
   ed: {
+    defaultLocale: "Default ({0})",
     survey: "Survey",
     settings: "Survey Settings",
     editSurvey: "Edit Survey",
@@ -52,6 +53,7 @@ export var enStrings = {
     testSurveyAgain: "Test Survey Again",
     testSurveyWidth: "Survey width: ",
     embedSurvey: "Embed Survey",
+    translation: "Translation",
     saveSurvey: "Save Survey",
     designer: "Survey Designer",
     jsonEditor: "JSON Editor",
@@ -68,7 +70,14 @@ export var enStrings = {
     surveyResults: "Survey Result: ",
     modified: "Modified",
     saving: "Saving",
-    saved: "Saved"
+    saved: "Saved",
+    saveError: "Error! Editor content is not saved.",
+    translationAddLanguage: "Select language to translate",
+    translationShowAllStrings: "Show all strings",
+    translationShowAllPages: "Show all pages",
+    translationNoStrings: "No strings to translate. Please, change the filter.",
+    translationExportToSCVButton: "Export to CSV",
+    translationImportFromSCVButton: "Import from CSV"
   },
   //Property names in table headers
   pel: {
@@ -107,7 +116,7 @@ export var enStrings = {
     aceEditorPanelTitle: "Current panel",
     showMore: "For more details please check the documentation",
     conditionShowMoreUrl:
-      "https://surveyjs.io/Documentation/LibraryParameter?id=QuestionBase&parameter=visibleIf",
+      "https://surveyjs.io/Documentation/LibraryParameter?id=Question&parameter=visibleIf",
     assistantTitle: "Available questions:",
     cellsEmptyRowsColumns: "There is should be at least one column or row",
 
@@ -235,6 +244,8 @@ export var enStrings = {
     triggerNotSet: "The trigger is not set",
     triggerRunIf: "Run if",
     triggerSetToName: "Change value of: ",
+    triggerFromName: "Copy value from: ",
+    triggerRunExpression: "Run this Expression:",
     triggerSetValue: "to: ",
     triggerIsVariable: "Do not put the variable into the survey result."
   },
@@ -342,6 +353,8 @@ export var enStrings = {
   triggers: {
     completetrigger: "complete survey",
     setvaluetrigger: "set value",
+    copyvaluetrigger: "copy value",
+    runexpressiontrigger: "run expression",
     visibletrigger: "change visibility"
   },
   //Properties

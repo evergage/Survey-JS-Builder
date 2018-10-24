@@ -20,6 +20,9 @@
         <li class="nav-item" data-bind="visible: showTestSurveyTab, css: {active: koViewType() == 'test'}">
             <a class="nav-link" href="#" data-bind="click:selectTestClick, text: $root.getLocString('ed.testSurvey')"></a>
         </li>
+        <li class="nav-item" data-bind="visible: showTranslationTab, css: {active: koViewType() == 'translation'}">
+            <a class="nav-link" href="#" data-bind="click:selectTranslationClick, text: $root.getLocString('ed.translation')"></a>
+        </li>
         <li class="nav-item" data-bind="visible: showEmbededSurveyTab, css: {active: koViewType() == 'embed'}">
             <a class="nav-link" href="#" data-bind="click:selectEmbedClick, text: $root.getLocString('ed.embedSurvey')"></a>
         </li>
@@ -42,7 +45,8 @@
                         </div>
                         <div role="tabpanel" data-bind="css: { 'panel-collapse collapse': koCollapsed}">
                             <!-- ko foreach: items -->
-                            <div draggable="true" class="svd_toolbox_item svd-light-border-color" data-bind="click: $root.clickToolboxItem, event:{dragstart: function(el, e) { $root.draggingToolboxItem($data, e); return true;}, dragend: function(el, e) { $root.dragEnd(); }}">
+                            <div tabindex="0" draggable="true" class="svd_toolbox_item svd-light-border-color"
+                                data-bind="key2click, clickNoFocus: $root.clickToolboxItem, event:{dragstart: function(el, e) { $root.draggingToolboxItem($data, e); return true;}, dragend: function(el, e) { $root.dragEnd(); }}">
                                 <span data-bind="attr: {title: title}">
                                     <svg-icon params="iconName: iconName"></svg-icon>
                                 </span>
@@ -56,7 +60,7 @@
                 <!-- ko if: !toolbox.koHasCategories() -->
                 <div class="svd_toolbox_title hidden-sm hidden-xs" data-bind="text: $root.getLocString('ed.toolbox')"></div>
                 <!-- ko foreach: toolbox.koItems -->
-                <div draggable="true" class="svd_toolbox_item svd-light-border-color" data-bind="click: $root.clickToolboxItem, event:{dragstart: function(el, e) { $root.draggingToolboxItem($data, e); return true;}, dragend: function(el, e) { $root.dragEnd(); }}">
+                <div tabindex="0" draggable="true" class="svd_toolbox_item svd-light-border-color" data-bind="key2click, clickNoFocus: $root.clickToolboxItem, event:{dragstart: function(el, e) { $root.draggingToolboxItem($data, e); return true;}, dragend: function(el, e) { $root.dragEnd(); }}">
                     <span data-bind="attr: {title: title}">
                         <svg-icon params="iconName: iconName"></svg-icon>
                     </span>
@@ -65,10 +69,11 @@
                 <!-- /ko  -->
                 <!-- /ko  -->
             </div>
+            <svd-splitter params="minLeft: 100, minRight: 600"></svd-splitter>
             <div class="col-xs-11 svd_editors" data-bind="css: {'col-lg-7 col-md-7 col-sm-8': koShowPropertyGrid, 'col-lg-10 col-md-10 col-sm-11': !koShowPropertyGrid(), 'svd_wide': !koShowPropertyGrid()}">
                 <div class="svd_toolbar">
                     <!-- ko foreach: toolbarItems -->
-                    <span class="svd_action" data-bind="css: $data.css, visible: visible, attr: { id: id }">
+                    <span tabindex="0" class="svd_action" data-bind="css: $data.css, visible: visible, attr: { id: id }">
                         <!-- ko template: { name: $data.template || 'svd-toolbar-button', data: $data.data || $data } -->
                         <!-- /ko -->
                     </span>
@@ -83,7 +88,9 @@
                     <!-- /ko -->
                 </div>
             </div>
-            <div class="col-lg-3 col-md-3 col-sm-3 hidden-xs svd_properties svd-light-border-color svd-light-bg-color" data-bind="visible: koShowPropertyGrid">
+            <svd-splitter params="minLeft: 600, minRight: 150"></svd-splitter>
+            <div class="col-lg-3 col-md-3 col-sm-3 hidden-xs svd_properties svd-light-border-color svd-light-bg-color"
+                data-bind="visible: koShowPropertyGrid">
                 <div class="svd_object_selector svd-light-border-color">
                     <div class="svd_custom_select">
                         <select id="objectSelector" class="form-control" data-bind="options: koObjects, optionsText: 'text', value: koSelectedObject"></select>
@@ -108,6 +115,9 @@
 
         <div data-bind="visible: koViewType() == 'embed'">
             <div data-bind="template: { name: 'surveyembeding', data: surveyEmbeding }"></div>
+        </div>
+        <div data-bind="visible: koViewType() == 'translation'">
+            <div data-bind="template: { name: 'translation', data: translation }"></div>
         </div>
     </div>
     <div data-bind="template: { name: 'questioneditor', data: questionEditorWindow }"></div>

@@ -105,23 +105,29 @@ export class SurveyStringPropertyEditor extends SurveyPropertyEditorBase {
 }
 export class SurveyDropdownPropertyEditor extends SurveyPropertyEditorBase {
   public koChoices: any;
+  public koHasFocus: any;
   constructor(property: Survey.JsonObjectProperty) {
     super(property);
     this.koChoices = ko.observableArray(this.getLocalizableChoices());
+    this.koHasFocus = ko.observable(false);
+    var self = this;
+    this.koHasFocus.subscribe(function(newValue) {
+      if (newValue && self.property["isDynamicChoices"]) {
+        //TODO
+        self.koChoices(self.getLocalizableChoices());
+      }
+    });
   }
   public get editorType(): string {
     return "dropdown";
   }
   public getValueText(value: any): string {
     if (this.property.name === "locale") {
-      var localeNames = Survey.surveyLocalization["localeNames"];
-      if (localeNames) {
-        var text = localeNames[value];
-        if (text) return text;
-      }
+      let text = editorLocalization.getLocaleName(value);
+      if (text) return text;
     }
     if (this.property.name === "cellType") {
-      var text = editorLocalization.getString("qt." + value);
+      let text = editorLocalization.getString("qt." + value);
       if (text) return text;
     }
     return editorLocalization.getPropertyValue(value);

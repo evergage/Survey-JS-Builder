@@ -7,14 +7,14 @@ const init = ClientFunction(() => {
   Survey.Survey.cssType = "bootstrap";
   Survey.defaultBootstrapCss.navigationButton = "btn btn-green";
   //Add a tag property
-  Survey.JsonObject.metaData.addProperty("questionbase", "tag");
+  Survey.JsonObject.metaData.addProperty("question", "tag");
   //Make name and tag properties read-only
   Survey.JsonObject.metaData.findProperty(
-    "questionbase",
+    "question",
     "name"
   ).readOnly = true;
   Survey.JsonObject.metaData.findProperty(
-    "questionbase",
+    "question",
     "tag"
   ).readOnly = true;
   SurveyEditor.defaultStrings.p.tag = { name: "tag", title: "MyTag" };
@@ -68,7 +68,7 @@ test(`check a guid in the tag`, async t => {
     () =>
       document
         .querySelectorAll("[title=MyTag]")[0]
-        .parentNode.nextElementSibling.querySelector("span").title
+        .parentNode.nextElementSibling.querySelector("input").value
   );
   const getGuid = ClientFunction(() => window.qguid);
 

@@ -17,7 +17,9 @@ export class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
   onEditItemClick: any;
   onCancelEditItemClick: any;
   koEditorName: any;
-  private columnsValue: Array<SurveyNestedPropertyEditorColumn>;
+  private koColumnsValue = ko.observable<
+    Array<SurveyNestedPropertyEditorColumn>
+  >([]);
   constructor(property: Survey.JsonObjectProperty) {
     super(property);
     this.createColumns();
@@ -41,8 +43,11 @@ export class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
       return self.getEditorName();
     });
   }
+  public get canShowDisplayNameOnTop(): boolean {
+    return false;
+  }
   public get columns(): Array<SurveyNestedPropertyEditorColumn> {
-    return this.columnsValue;
+    return this.koColumnsValue();
   }
   public beforeShow() {
     super.beforeShow();
@@ -54,7 +59,7 @@ export class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
     for (var i = 0; i < properties.length; i++) {
       result.push(new SurveyNestedPropertyEditorColumn(properties[i]));
     }
-    this.columnsValue = result;
+    this.koColumnsValue(result);
   }
   protected getProperties(): Array<Survey.JsonObjectProperty> {
     return [];
@@ -103,7 +108,7 @@ export class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
     for (var i = 0; i < this.koItems().length; i++) {
       result = result || this.koItems()[i].hasError();
     }
-    return result;
+    return super.checkForErrors() || result;
   }
   protected onBeforeApply() {
     var internalItems = this.koItems();
@@ -116,23 +121,32 @@ export class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
 
 export class SurveyNestedPropertyEditorItem {
   protected options: ISurveyObjectEditorOptions;
-  private cellsValue: Array<SurveyNestedPropertyEditorEditorCell> = [];
+  private koCellsValue = ko.observableArray<
+    SurveyNestedPropertyEditorEditorCell
+  >();
   private itemEditorValue: SurveyQuestionEditor;
   constructor(
     public obj: any,
-    public columns: Array<SurveyNestedPropertyEditorColumn>,
+    private getColumns: () => Array<SurveyNestedPropertyEditorColumn>,
     options: ISurveyObjectEditorOptions
   ) {
     this.options = options;
-    for (var i = 0; i < columns.length; i++) {
-      this.cellsValue.push(
-        new SurveyNestedPropertyEditorEditorCell(
-          obj,
-          columns[i].property,
-          this.options
-        )
-      );
-    }
+    ko.computed(() => {
+      var columns = this.getColumns();
+      this.koCellsValue([]);
+      for (var i = 0; i < columns.length; i++) {
+        this.koCellsValue.push(
+          new SurveyNestedPropertyEditorEditorCell(
+            obj,
+            columns[i].property,
+            this.options
+          )
+        );
+      }
+    });
+  }
+  public get columns(): Array<SurveyNestedPropertyEditorColumn> {
+    return this.getColumns();
   }
   public get itemEditor(): SurveyQuestionEditor {
     if (!this.itemEditorValue)
@@ -140,7 +154,7 @@ export class SurveyNestedPropertyEditorItem {
     return this.itemEditorValue;
   }
   public get cells(): Array<SurveyNestedPropertyEditorEditorCell> {
-    return this.cellsValue;
+    return this.koCellsValue();
   }
   public hasError(): boolean {
     if (this.itemEditorValue && this.itemEditorValue.hasError()) return true;
@@ -208,7 +222,7 @@ export class SurveyNestedPropertyEditorEditorCell {
     return this.property.getValue(this.obj);
   }
   public set value(val: any) {
-    this.property.setValue(this.obj, val, null);
+    this.obj[this.property.name] = val;
   }
   public get hasError(): boolean {
     return this.editor.hasError();

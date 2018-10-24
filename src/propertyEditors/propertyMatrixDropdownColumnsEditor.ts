@@ -29,12 +29,21 @@ export class SurveyPropertyDropdownColumnsEditor extends SurveyNestedPropertyEdi
   }
   protected createNewEditorItem(): any {
     var newColumn = this.createEditorItemCore(null);
+    var columns = [];
+    for (var i = 0; i < this.koItems().length; i++) {
+      columns.push(this.koItems()[i].column);
+    }
+    columns.push(newColumn);
     if (this.options) {
-      this.options.onMatrixDropdownColumnAddedCallback(newColumn);
+      this.options.onMatrixDropdownColumnAddedCallback(
+        this.object,
+        newColumn,
+        columns
+      );
     }
     return new SurveyPropertyMatrixDropdownColumnsItem(
       newColumn,
-      this.columns,
+      () => this.columns,
       this.options
     );
   }
@@ -42,20 +51,24 @@ export class SurveyPropertyDropdownColumnsEditor extends SurveyNestedPropertyEdi
     var newColumn = this.createEditorItemCore(item);
     return new SurveyPropertyMatrixDropdownColumnsItem(
       newColumn,
-      this.columns,
+      () => this.columns,
       this.options
     );
   }
   protected createItemFromEditorItem(editorItem: any) {
-    return editorItem.column;
+    var newColumn = new Survey.MatrixDropdownColumn("");
+    var json = new Survey.JsonObject().toJsonObject(editorItem.column);
+    new Survey.JsonObject().toObject(json, newColumn);
+    return newColumn;
   }
   protected createEditorItemCore(item: any): Survey.MatrixDropdownColumn {
     var newColumn = new Survey.MatrixDropdownColumn("");
+    newColumn["object"] = this.object;
+    newColumn.colOwner = this.object;
     if (item) {
       var json = new Survey.JsonObject().toJsonObject(item);
       new Survey.JsonObject().toObject(json, newColumn);
     }
-    newColumn.colOwner = this.object;
     return newColumn;
   }
   protected getProperties(): Array<Survey.JsonObjectProperty> {
@@ -72,10 +85,10 @@ export class SurveyPropertyDropdownColumnsEditor extends SurveyNestedPropertyEdi
 export class SurveyPropertyMatrixDropdownColumnsItem extends SurveyNestedPropertyEditorItem {
   constructor(
     public column: Survey.MatrixDropdownColumn,
-    public columns: Array<SurveyNestedPropertyEditorColumn>,
+    getColumns: () => Array<SurveyNestedPropertyEditorColumn>,
     options: ISurveyObjectEditorOptions = null
   ) {
-    super(column, columns, options);
+    super(column, getColumns, options);
     var self = this;
     column.registerFunctionOnPropertyValueChanged(
       "cellType",

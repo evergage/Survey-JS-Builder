@@ -108,11 +108,13 @@ QUnit.test("options.questionTypes", function(assert) {
 });
 QUnit.test("Editor state property", function(assert) {
   var editor = new SurveyEditor();
+  editor.showErrorOnFailedSave = false;
+  var success = true;
   editor.saveSurveyFunc = function(
     no: number,
     doSaveCallback: (no: number, isSuccess: boolean) => void
   ) {
-    doSaveCallback(no, true);
+    doSaveCallback(no, success);
   };
   editor.text = JSON.stringify(getSurveyJson());
   assert.equal(editor.state, "");
@@ -120,6 +122,11 @@ QUnit.test("Editor state property", function(assert) {
   assert.equal(editor.state, "modified");
   editor.saveButtonClick();
   assert.equal(editor.state, "saved");
+  editor.addPage();
+  assert.equal(editor.state, "modified");
+  success = false;
+  editor.saveButtonClick();
+  assert.equal(editor.state, "modified");
   /*
      editor.addPage();
      assert.equal(editor.state, "modified");
@@ -205,9 +212,8 @@ QUnit.test("onElementDeleting event", function(assert) {
 
 QUnit.test("fast copy tests, copy a question", function(assert) {
   var editor = new SurveyEditor();
-  var q1 = <Survey.QuestionText>editor.survey.pages[0].addNewQuestion(
-    "text",
-    "question1"
+  var q1 = <Survey.QuestionText>(
+    editor.survey.pages[0].addNewQuestion("text", "question1")
   );
   q1.placeHolder = "I'm here";
   editor.fastCopyQuestion(q1);
@@ -576,7 +582,7 @@ QUnit.test("PagesEditor change question's page", function(assert) {
 
   assert.equal(pagesEditor.selectedPage, editor["pages"]()[0]);
 
-  var question = <Survey.QuestionBase>editor.survey.pages[0].elements[0];
+  var question = <Survey.Question>editor.survey.pages[0].elements[0];
   question.page = editor["pages"]()[1];
   editor.onPropertyValueChanged(
     <any>{ name: "page", isDefaultValue: () => false },
@@ -585,6 +591,78 @@ QUnit.test("PagesEditor change question's page", function(assert) {
   );
   assert.equal(pagesEditor.selectedPage, editor["pages"]()[1]);
 });
+
+QUnit.test(
+  "Element name should be unique - property grid + Question Editor",
+  function(assert) {
+    var editor = new SurveyEditor();
+    editor.survey.currentPage.addNewQuestion("text", "question1");
+    editor.survey.currentPage.addNewQuestion("text", "question2");
+    var question = editor.survey.currentPage.addNewQuestion("text", "question");
+    editor.selectedObjectEditor.selectedObject = question;
+    var namePropertyEditor = editor.selectedObjectEditor.getPropertyEditor(
+      "name"
+    );
+    editor.selectedObjectEditor.changeActiveProperty(namePropertyEditor);
+    namePropertyEditor.koValue("question2");
+    assert.equal(
+      namePropertyEditor.koValue(),
+      "question3",
+      "The name should be unique"
+    );
+    question.name = "question";
+    editor.onQuestionEditorChanged(question);
+    assert.equal(question.name, "question", "the name is correct");
+    question.name = "question2";
+    editor.onQuestionEditorChanged(question);
+    assert.equal(question.name, "question3", "the name is corrected");
+    //should not have an error
+    editor.onQuestionEditorChanged(<any>editor.survey);
+  }
+);
+
+QUnit.test(
+  "Remove Panel immediately on add - https://surveyjs.answerdesk.io/ticket/details/T1106",
+  function(assert) {
+    var editor = new SurveyEditor();
+    editor.onPanelAdded.add(function(sender, options) {
+      let parent = options.panel.parent;
+      parent.removeElement(options.panel);
+    });
+
+    editor.clickToolboxItem({ json: { name: "q1", type: "panel" } });
+    assert.equal(
+      editor["surveyObjects"].koObjects().length,
+      2,
+      "panel has not been added"
+    );
+  }
+);
+
+QUnit.test(
+  "Change page on changing survey.selectedElement if needed, Bug#424",
+  function(assert) {
+    var editor = new SurveyEditor();
+    editor.text = JSON.stringify(getSurveyJson());
+    var pagesEditor = new PagesEditor(editor, editor.survey.pages[0]);
+    editor.survey.selectedElement = editor.survey.getQuestionByName(
+      "question4"
+    );
+    assert.equal(
+      pagesEditor.pageSelection().name,
+      "page3",
+      "Page 3 is selected"
+    );
+    editor.survey.selectedElement = editor.survey.getQuestionByName(
+      "question3"
+    );
+    assert.equal(
+      pagesEditor.pageSelection().name,
+      "page2",
+      "Page 2 is selected"
+    );
+  }
+);
 
 function getSurveyJson(): any {
   return {

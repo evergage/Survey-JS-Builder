@@ -47,6 +47,7 @@ QUnit.test("Created properties on set selected Object", function(assert) {
     "maxWeight property"
   );
   assert.equal(editor.koProperties()[1].name, "name", "name property");
+  delete defaultStrings.p["maxWeight"];
 });
 QUnit.test("Custom sort properties", function(assert) {
   var editor = new SurveyObjectEditor();
@@ -59,6 +60,15 @@ QUnit.test("Custom sort properties", function(assert) {
 
   assert.equal(editor.koProperties().length, 3, "Two property object");
   assert.equal(editor.koProperties()[0].name, "name", "name property");
+});
+QUnit.test("Sort by displayName by default", function(assert) {
+  defaultStrings.p["maxWeight"] = "zzz maximum weight";
+  var editor = new SurveyObjectEditor();
+  editor.selectedObject = new Truck();
+
+  assert.equal(editor.koProperties().length, 3, "Three properties object");
+  assert.equal(editor.koProperties()[2].name, "maxWeight", "It is a last property, sort by display name");
+  delete defaultStrings.p["maxWeight"];
 });
 QUnit.test("Get Property Value", function(assert) {
   var editor = new SurveyObjectEditor();
@@ -202,12 +212,17 @@ class EditorOptionsTests implements ISurveyObjectEditorOptions {
   showApplyButtonInEditors: boolean;
   useTabsInElementEditor: boolean;
   propertyName: string;
-  onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue) {
-    itemValue.value = "item1";
+  onItemValueAddedCallback(
+    propertyName: string,
+    itemValue: Survey.ItemValue,
+    itemValues: Array<Survey.ItemValue>
+  ) {
+    itemValue.value = "item" + (itemValues.length + 1);
     this.propertyName = propertyName;
   }
-  onMatrixDropdownColumnAddedCallback(column: Survey.MatrixDropdownColumn) {
+  onMatrixDropdownColumnAddedCallback(matrix: Survey.Question, column: Survey.MatrixDropdownColumn, columns: Array<Survey.MatrixDropdownColumn>) {
     column.name = "column1";
+    matrix["columnCount"] = columns.length;
   }
   onSetPropertyEditorOptionsCallback(
     propertyName: string,
@@ -218,6 +233,12 @@ class EditorOptionsTests implements ISurveyObjectEditorOptions {
       editorOptions.allowAddRemoveItems = false;
     }
   }
+  onPropertyEditorKeyDownCallback(
+    propertyName: string,
+    obj: Survey.Base,
+    editor: SurveyPropertyEditorBase,
+    event: KeyboardEvent
+  ) {}
   onGetErrorTextOnValidationCallback(
     propertyName: string,
     obj: Survey.Base,
@@ -261,6 +282,10 @@ QUnit.test("On new ItemValue added", function(assert) {
   assert.equal(question.choices.length, 1, "One item is added");
   assert.equal(question.choices[0].value, "item1", "auto generated value");
   assert.equal(options.propertyName, "choices", "property name set correcty");
+  itemValuesEditor.onAddClick();
+  itemValuesEditor.onApplyClick();
+  assert.equal(question.choices.length, 2, "Two items are added");
+  assert.equal(question.choices[1].value, "item2", "auto generated value 2");
 });
 
 QUnit.test("On new Matrix Column added", function(assert) {
@@ -275,6 +300,7 @@ QUnit.test("On new Matrix Column added", function(assert) {
   var property = <SurveyObjectProperty>editor.getPropertyEditor("columns");
   var columnsEditor = <SurveyPropertyDropdownColumnsEditor>property.editor;
   columnsEditor.onAddClick();
+  assert.equal(question["columnCount"], 1, "1 column in editor");
   columnsEditor.onApplyClick();
   assert.equal(question.columns.length, 1, "One item is added");
   assert.equal(

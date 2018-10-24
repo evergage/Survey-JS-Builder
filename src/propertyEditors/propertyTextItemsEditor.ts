@@ -30,14 +30,26 @@ export class SurveyPropertyTextItemsEditor extends SurveyNestedPropertyEditor {
   }
   protected createNewEditorItem(): any {
     var newItem = new Survey.MultipleTextItem(this.getNewName());
+    newItem["object"] = this.object;
     //newColumn.colOwner = TODO set colOwner.
-    return new SurveyPropertyTextItemsItem(newItem, this.columns, this.options);
+    return new SurveyPropertyTextItemsItem(
+      newItem,
+      () => this.columns,
+      this.options
+    );
   }
   protected createEditorItem(item: any) {
-    return new SurveyPropertyTextItemsItem(item, this.columns, this.options);
+    return new SurveyPropertyTextItemsItem(
+      item,
+      () => this.columns,
+      this.options
+    );
   }
   protected createItemFromEditorItem(editorItem: any) {
-    return editorItem.item;
+    var newItem = new Survey.MultipleTextItem();
+    var json = new Survey.JsonObject().toJsonObject(editorItem.item);
+    new Survey.JsonObject().toObject(json, newItem);
+    return newItem;
   }
   protected getProperties(): Array<Survey.JsonObjectProperty> {
     var names = this.getPropertiesNames("multipletext@items", [
@@ -63,10 +75,10 @@ export class SurveyPropertyTextItemsEditor extends SurveyNestedPropertyEditor {
 export class SurveyPropertyTextItemsItem extends SurveyNestedPropertyEditorItem {
   constructor(
     public item: Survey.MultipleTextItem,
-    public columns: Array<SurveyNestedPropertyEditorColumn>,
+    getColumns: () => Array<SurveyNestedPropertyEditorColumn>,
     options: ISurveyObjectEditorOptions
   ) {
-    super(item, columns, options);
+    super(item, getColumns, options);
   }
   protected createSurveyQuestionEditor() {
     return new SurveyQuestionEditor(

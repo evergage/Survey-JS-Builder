@@ -23,18 +23,25 @@ class ItemInplaceEditor extends TitleInplaceEditor {
   }
 
   deleteItem(model: ItemInplaceEditor, event) {
-    if (this.notOther) {
+    if (this.question.otherItem === this.item) {
+      this.question.hasOther = false;
+    } else if (this.question["selectAllItem"] === this.item) {
+      this.question["hasSelectAll"] = false;
+    } else if (this.question["noneItem"] === this.item) {
+      this.question["hasNone"] = false;
+    } else {
       var index = model.question.choices.indexOf(model.item);
       model.question.choices.splice(index, 1);
-    } else {
-      this.question.hasOther = false;
     }
-
     this.editor.onQuestionEditorChanged(this.question);
   }
 
-  get notOther() {
-    return this.question.otherItem !== this.item;
+  get isDraggable() {
+    return (
+      this.question.otherItem !== this.item &&
+      this.question["selectAllItem"] !== this.item &&
+      this.question["noneItem"] !== this.item
+    );
   }
 }
 
@@ -65,7 +72,12 @@ ko.components.register("item-editor", {
 export var itemAdorner = {
   inplaceEditForValues: false,
   getMarkerClass: model => {
-    return !!model.parent && !!model.choices ? "item_editable" : "";
+    return !!model.parent &&
+      !!model.choices &&
+      typeof model.getType === "function" &&
+      model.getType() !== "imagepicker"
+      ? "item_editable"
+      : "";
   },
   getElementName: model => "controlLabel",
   afterRender: (elements: HTMLElement[], model: QuestionSelectBase, editor) => {
@@ -73,35 +85,35 @@ export var itemAdorner = {
       elements[i].onclick = e => e.preventDefault();
       var decoration = document.createElement("span");
       decoration.className = "svda-adorner-root";
-      if (i === elements.length - 1 && model.hasOther) {
-        decoration.innerHTML =
-          "<item-editor params='name: \"otherText\", target: target, item: item, question: question, editor: editor'></item-editor>";
-        elements[i].appendChild(decoration);
-        ko.applyBindings(
-          {
-            item: model.otherItem,
-            question: model,
-            target: model,
-            editor: editor
-          },
-          decoration
-        );
-      } else {
-        decoration.innerHTML =
-          "<item-editor params='name: \"" +
-          (itemAdorner.inplaceEditForValues ? "value" : "text") +
-          "\", target: target, item: item, question: question, editor: editor'></item-editor>";
-        elements[i].appendChild(decoration);
-        ko.applyBindings(
-          {
-            item: model.choices[i],
-            question: model,
-            target: model.choices[i],
-            editor: editor
-          },
-          decoration
-        );
+      var itemValue = ko.dataFor(elements[i]);
+      var propertyName = itemAdorner.inplaceEditForValues ? "value" : "text";
+      var target = itemValue;
+      if (itemValue === model["selectAllItem"]) {
+        target = model;
+        propertyName = "selectAllText";
       }
+      if (itemValue === model["noneItemValue"]) {
+        target = model;
+        propertyName = "noneText";
+      }
+      if (itemValue === model["otherItemValue"]) {
+        target = model;
+        propertyName = "otherText";
+      }
+      decoration.innerHTML =
+        "<item-editor params='name: \"" +
+        propertyName +
+        "\", target: target, item: item, question: question, editor: editor'></item-editor>";
+      elements[i].appendChild(decoration);
+      ko.applyBindings(
+        {
+          item: itemValue,
+          question: model,
+          target: target,
+          editor: editor
+        },
+        decoration
+      );
     }
   }
 };
@@ -110,7 +122,8 @@ registerAdorner("choices-label", itemAdorner);
 
 export var createAddItemHandler = (
   question: Survey.QuestionSelectBase,
-  onItemAdded: (itemValue: Survey.ItemValue) => void
+  onItemAdded: (itemValue: Survey.ItemValue) => void,
+  onItemAdding: (itemValue: Survey.ItemValue) => void = null
 ) => () => {
   var nextValue = null;
   var values = question.choices.map(function(item) {
@@ -131,13 +144,49 @@ export var createAddItemHandler = (
       return text;
     }
   };
+  !!onItemAdding && onItemAdding(itemValue);
   question.choices = question.choices.concat([itemValue]);
+  itemValue = question.choices.filter(
+    choiceItem => choiceItem.value === itemValue.value
+  )[0];
   !!onItemAdded && onItemAdded(itemValue);
+};
+
+export var createAddItemElement = handler => {
+  var addNew = document.createElement("div");
+  addNew.title = editorLocalization.getString("pe.addItem");
+  addNew.className = "svda-add-new-item svd-primary-icon";
+  addNew.onclick = handler;
+
+  var svgElem: any = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg"
+  );
+  svgElem.setAttribute("class", "svd-svg-icon");
+  svgElem.style.width = "12px";
+  svgElem.style.height = "12px";
+  var useElem: any = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "use"
+  );
+  useElem.setAttributeNS(
+    "http://www.w3.org/1999/xlink",
+    "xlink:href",
+    "#icon-inplaceplus"
+  );
+  svgElem.appendChild(useElem);
+  addNew.appendChild(svgElem);
+  return addNew;
 };
 
 export var itemDraggableAdorner = {
   getMarkerClass: model => {
-    return !!model.parent && !!model.choices ? "item_draggable" : "";
+    return !!model.parent &&
+      !!model.choices &&
+      typeof model.getType === "function" &&
+      model.getType() !== "imagepicker"
+      ? "item_draggable"
+      : "";
   },
   getElementName: model => "item",
   afterRender: (
@@ -146,8 +195,15 @@ export var itemDraggableAdorner = {
     editor: SurveyEditor
   ) => {
     var itemsRoot = elements[0].parentElement;
-    if (model.hasOther) {
-      elements[elements.length - 1].classList.remove("item_draggable");
+    for (var i = 0; i < elements.length; i++) {
+      var itemValue = ko.dataFor(elements[i]);
+      if (
+        itemValue === model["selectAllItemValue"] ||
+        itemValue === model["noneItemValue"] ||
+        itemValue === model["otherItemValue"]
+      ) {
+        elements[i].classList.remove("item_draggable");
+      }
     }
     var sortable = Sortable.create(itemsRoot, {
       handle: ".svda-drag-handle",
@@ -164,29 +220,22 @@ export var itemDraggableAdorner = {
     var addNew = document.createElement("div");
     addNew.title = editorLocalization.getString("pe.addItem");
     addNew.className = "svda-add-new-item svd-primary-icon";
-    addNew.onclick = createAddItemHandler(model, itemValue =>
-      editor.onQuestionEditorChanged(model)
+    addNew.onclick = createAddItemHandler(
+      model,
+      itemValue => {
+        editor.onQuestionEditorChanged(model);
+      },
+      itemValue => {
+        editor.onItemValueAddedCallback("choices", itemValue, model.choices);
+      }
     );
 
-    var svgElem: any = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "svg"
+    var addNew = createAddItemElement(
+      createAddItemHandler(model, itemValue => {
+        editor.onQuestionEditorChanged(model);
+        editor.onItemValueAddedCallback("choices", itemValue);
+      })
     );
-    svgElem.setAttribute("class", "svd-svg-icon");
-    svgElem.style.width = "12px";
-    svgElem.style.height = "12px";
-    var useElem: any = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "use"
-    );
-    useElem.setAttributeNS(
-      "http://www.w3.org/1999/xlink",
-      "xlink:href",
-      "#icon-inplaceplus"
-    );
-    svgElem.appendChild(useElem);
-    addNew.appendChild(svgElem);
-
     itemsRoot.appendChild(addNew);
   }
 };

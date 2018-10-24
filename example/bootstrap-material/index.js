@@ -32,19 +32,17 @@ if (!window["%hammerhead%"]) {
   // Here is some API request to get kpiList data from backend
 
   // Add KPI property to questions
-  Survey.JsonObject.metaData.addProperty("questionbase", {
+  Survey.JsonObject.metaData.addProperty("question", {
     name: "kpis:multiplevalues",
     choices: kpiList
   });
   // Add KPI tab to question editor modal
-  SurveyEditor.SurveyQuestionEditorDefinition.definition[
-    "questionbase"
-  ].tabs.push({ name: "kpis" });
+  SurveyEditor.SurveyQuestionEditorDefinition.definition["question"].tabs.push({
+    name: "kpis"
+  });
 
   $.material.init();
 
-  Survey.Survey.cssType = "bootstrapmaterial";
-  Survey.StylesManager.applyTheme("bootstrapmaterial");
   SurveyEditor.StylesManager.applyTheme("bootstrapmaterial");
   var editor = new SurveyEditor.SurveyEditor("editorElement", {
     useTabsInElementEditor: true

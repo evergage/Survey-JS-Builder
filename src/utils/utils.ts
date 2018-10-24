@@ -1,3 +1,5 @@
+import * as ko from "knockout";
+
 export function getNextValue(prefix: string, values: string[]) {
   var index = values.reduce((res, val) => {
     if (typeof val === "string" && val.indexOf(prefix) === 0) {
@@ -15,10 +17,9 @@ export function getNextValue(prefix: string, values: string[]) {
 
 export function findParentNode(className: string, sourceNode: HTMLElement) {
   var parent = sourceNode;
-  while (
-    (parent = parent.parentElement) &&
-    !parent.classList.contains(className)
-  );
+  while (!!parent && !parent.classList.contains(className)) {
+    parent = parent.parentElement;
+  }
   return parent;
 }
 
@@ -44,3 +45,34 @@ export function focusFirstControl(renderedElements: HTMLElement[]) {
     }
   }
 }
+
+ko.bindingHandlers["trueclick"] = {
+  init: function(element, valueAccessor, allBindingsAccessor) {
+    element.onclick = () => true;
+  }
+};
+
+ko.bindingHandlers["key2click"] = {
+  init: function(element, valueAccessor, allBindingsAccessor) {
+    element.onkeyup = ev => {
+      var char = ev.which || ev.keyCode;
+      if (char === 13 || char === 32) {
+        element.click();
+      } else if (char === 27) {
+        element.blur();
+      }
+    };
+  }
+};
+
+ko.bindingHandlers["clickNoFocus"] = {
+  init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+    element.onclick = ev => {
+      valueAccessor().call(viewModel, viewModel, ev);
+      setTimeout(() => {
+        element.blur();
+      }, 1);
+      return true;
+    };
+  }
+};

@@ -6,6 +6,7 @@
 @import "toolbox";
 @import "toolbar";
 @import "pages-editor";
+@import "templates/translation";
 @import "properties";
 @import "bootstrap-material";
 .svd_container {
@@ -173,6 +174,8 @@
     margin: 0;
     border: none;
     .svd_survey_designer {
+      position: relative;
+
       .svd_editors {
         .svd_questions_editor {
           height: $editor-height;
@@ -323,6 +326,10 @@
     .modal-body {
       max-height: 75vh;
       overflow: auto;
+
+      .sv_main .sv_custom_header {
+        background: transparent;
+      }
     }
     .svd_property_editor_dropdown {
       min-width: 140px;
@@ -583,7 +590,4 @@
       }
     }
   }
-}
-
-.svd_container.sv_bootstrapmaterial_css {
 }

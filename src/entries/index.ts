@@ -121,6 +121,14 @@ import "../localization/polish";
 import "../localization/portuguese";
 import "../localization/simplified-chinese";
 import "../localization/spanish";
+import "../localization/traditional-chinese";
+
+export {
+  Translation,
+  TranslationGroup,
+  TranslationItem,
+  TranslationItemBase
+} from "../translation";
 
 //adorners
 export { titleAdorner } from "../adorners/title-editor";
@@ -129,9 +137,12 @@ export { labelAdorner } from "../adorners/label-editor";
 export { questionActionsAdorner } from "../adorners/question-actions";
 export { selectItemsEditorAdorner } from "../adorners/select-items-editor";
 export { ratingItemAdorner } from "../adorners/rating-item-editor";
+export { imageItemsAdorner } from "../adorners/image-items";
 
 export {
   IAccordionItemData,
   AccordionItemModel,
   AccordionModel
 } from "../utils/accordion";
+
+export { SplitterComponentViewModel } from "../utils/splitter";

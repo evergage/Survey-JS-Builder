@@ -24,7 +24,8 @@ import { ISurveyObjectEditorOptions } from "../../src/propertyEditors/propertyEd
 import { SurveyPropertyTextItemsEditor } from "../../src/propertyEditors/propertyTextItemsEditor";
 import {
   SurveyPropertyTriggersEditor,
-  SurveyPropertyVisibleTrigger
+  SurveyPropertyVisibleTrigger,
+  SurveyPropertySetValueTrigger
 } from "../../src/propertyEditors/propertyTriggersEditor";
 import {
   SurveyPropertyValidatorsEditor,
@@ -34,18 +35,28 @@ import { SurveyPropertyCustomEditor } from "../../src/propertyEditors/propertyCu
 import { Extentions } from "../../src/extentions";
 import {
   SurveyPropertyEditorFactory,
-  SurveyDropdownPropertyEditor
+  SurveyDropdownPropertyEditor,
+  SurveyStringPropertyEditor
 } from "../../src/propertyEditors/propertyEditorFactory";
 import { defaultStrings } from "../../src/editorLocalization";
 
 export default QUnit.module("PropertyEditorsTests");
 
 class EditorOptionsTests implements ISurveyObjectEditorOptions {
+  doValueChangingCallback: (options: any) => any;
   alwaySaveTextInPropertyEditors: boolean;
   showApplyButtonInEditors: boolean;
   useTabsInElementEditor: boolean;
-  onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue) {}
-  onMatrixDropdownColumnAddedCallback(column: Survey.MatrixDropdownColumn) {}
+  onItemValueAddedCallback(
+    propertyName: string,
+    itemValue: Survey.ItemValue,
+    itemValues: Array<Survey.ItemValue>
+  ) {}
+  onMatrixDropdownColumnAddedCallback(
+    matrix: Survey.Question,
+    column: Survey.MatrixDropdownColumn,
+    columns: Array<Survey.MatrixDropdownColumn>
+  ) {}
   onSetPropertyEditorOptionsCallback(
     propertyName: string,
     obj: Survey.Base,
@@ -58,7 +69,15 @@ class EditorOptionsTests implements ISurveyObjectEditorOptions {
   ): string {
     return "";
   }
-  onValueChangingCallback(options: any) {}
+  onPropertyEditorKeyDownCallback(
+    propertyName: string,
+    obj: Survey.Base,
+    editor: SurveyPropertyEditorBase,
+    event: KeyboardEvent
+  ) {}
+  onValueChangingCallback(options: any) {
+    if (!!this.doValueChangingCallback) this.doValueChangingCallback(options);
+  }
   onPropertyEditorObjectSetCallback(
     propertyName: string,
     obj: Survey.Base,
@@ -150,10 +169,7 @@ QUnit.test("Create custom property editor", function(assert) {
 });
 QUnit.test("PropertyEditor and hasError - required", function(assert) {
   var question = new Survey.QuestionText("q1");
-  var property = Survey.JsonObject.metaData.findProperty(
-    "questionbase",
-    "name"
-  );
+  var property = Survey.JsonObject.metaData.findProperty("question", "name");
   var propertyEditor = new SurveyObjectProperty(property);
   propertyEditor.object = question;
   var editor = propertyEditor.editor;
@@ -586,7 +602,7 @@ QUnit.test("SurveyPropertyItemValuesEditor + locale", function(assert) {
   var q = <Survey.QuestionDropdown>p.addNewQuestion("dropdown", "q1");
   q.choices = [1, 2, 3];
   survey.locale = "en";
-  q.choices[0].text = "Engish 1";
+  q.choices[0].text = "English 1";
 
   survey.locale = "de";
   var property = Survey.JsonObject.metaData.findProperty(
@@ -598,11 +614,14 @@ QUnit.test("SurveyPropertyItemValuesEditor + locale", function(assert) {
       q.choices = newValue;
     })
   );
+  propEditor.onGetLocale = function() {
+    return survey.locale;
+  };
   propEditor.beforeShow();
   propEditor.object = q;
   assert.equal(
     propEditor.koItems()[0].cells[1].koValue(),
-    "",
+    "English 1",
     "There is no value for deutsch"
   );
   propEditor.koItems()[0].cells[1].koValue("Deutsch 1");
@@ -613,10 +632,54 @@ QUnit.test("SurveyPropertyItemValuesEditor + locale", function(assert) {
   );
   propEditor.apply();
   survey.locale = "en";
-  assert.equal(q.choices[0].text, "Engish 1", "value is english");
+  assert.equal(q.choices[0].text, "English 1", "value is english");
   survey.locale = "de";
   assert.equal(q.choices[0].text, "Deutsch 1", "value is deutsch");
 });
+QUnit.test("SurveyPropertyDropdownColumnsEditor + locale, bug#1285", function(
+  assert
+) {
+  var survey = new Survey.Survey();
+  var p = survey.addNewPage();
+  var q = <Survey.QuestionMatrixDynamic>p.addNewQuestion("matrixdynamic", "q1");
+  q.addColumn("col1");
+  survey.locale = "en";
+  q.columns[0].title = "English 1";
+
+  survey.locale = "de";
+  var property = Survey.JsonObject.metaData.findProperty(
+    "matrixdropdownbase",
+    "columns"
+  );
+  var propEditor = <SurveyPropertyDropdownColumnsEditor>(
+    SurveyPropertyEditorFactory.createEditor(property, function(newValue) {
+      q.columns = newValue;
+    })
+  );
+  propEditor.onGetLocale = function() {
+    return survey.locale;
+  };
+
+  propEditor.beforeShow();
+  propEditor.object = q;
+  assert.equal(
+    propEditor.koItems()[0].cells[3].koValue(),
+    "English 1",
+    "There is no value for deutsch"
+  );
+  propEditor.koItems()[0].cells[3].koValue("Deutsch 1");
+  assert.equal(
+    propEditor.koItems()[0].cells[3].koValue(),
+    "Deutsch 1",
+    "Replace with deutch"
+  );
+  propEditor.apply();
+  survey.locale = "en";
+  assert.equal(q.columns[0].title, "English 1", "value is english");
+  survey.locale = "de";
+  assert.equal(q.columns[0].title, "Deutsch 1", "value is deutsch");
+});
+
 QUnit.test("SurveyNestedPropertyEditorEditorCell", function(assert) {
   //TODO remove later - create property if it doesn't exist
   var propertyEditor = new SurveyPropertyItemValuesEditor(null);
@@ -672,7 +735,7 @@ QUnit.test("SurveyPropertyItemValuesEditorItem", function(assert) {
   var itemValue = new Survey.ItemValue(null);
   var item = new SurveyPropertyItemValuesEditorItem(
     itemValue,
-    propertyEditor.columns,
+    () => propertyEditor.columns,
     null
   );
   assert.equal(item.cells.length, 2, "There are two cells");
@@ -948,6 +1011,65 @@ QUnit.test("Triggers property editor", function(assert) {
     "Complete trigger is created"
   );
 });
+QUnit.test("Triggers property editor and setvalue trigger", function(assert) {
+  var survey = createSurvey();
+  var trigger = new Survey.SurveyTriggerSetValue();
+  trigger.expression = "{question1} != 'val1'";
+  survey.triggers.push(trigger);
+  var result = [];
+  var propEditor = new SurveyPropertyTriggersEditor(null);
+  propEditor.beforeShow();
+  propEditor.onChanged = (newValue: any) => {
+    result = newValue;
+  };
+  propEditor.editingObject = survey;
+  propEditor.editingValue = survey.triggers;
+  assert.equal(
+    propEditor.koItems().length,
+    1,
+    "There is one trigger initially"
+  );
+  var saveTriggerEditor = <SurveyPropertySetValueTrigger>(
+    propEditor.koItems()[0]
+  );
+  assert.equal(saveTriggerEditor.koHasSurvey(), false, "survey is not visible");
+  assert.notOk(saveTriggerEditor.survey, "There is no survey by default");
+  saveTriggerEditor.kosetToName("question1");
+  assert.ok(saveTriggerEditor.survey, "Survey has been created");
+  assert.equal(saveTriggerEditor.koHasSurvey(), true, "survey is visible");
+  saveTriggerEditor.kosetValue("val2");
+  saveTriggerEditor.kosetToName("question2");
+  assert.notOk(saveTriggerEditor.kosetValue(), "value is empty");
+  assert.equal(
+    saveTriggerEditor
+      .koSurvey()
+      .getQuestionByName("question")
+      .getType(),
+    "checkbox",
+    "We have a checkbox question"
+  );
+  saveTriggerEditor.survey.setValue("question", ["one", "two"]);
+  assert.deepEqual(
+    saveTriggerEditor.kosetValue(),
+    ["one", "two"],
+    "value is set from survey"
+  );
+  saveTriggerEditor.koisVariable(true);
+  assert.equal(
+    saveTriggerEditor.koHasSurvey(),
+    false,
+    "survey is not visible again"
+  );
+  assert.notOk(
+    saveTriggerEditor.kosetToName(),
+    "question is empty, isVariable is true"
+  );
+  assert.notOk(
+    saveTriggerEditor.kosetValue(),
+    "value is empty, isVariable is true"
+  );
+});
+
 QUnit.test("Validators property editor", function(assert) {
   var survey = createSurvey();
   var validator = new Survey.NumericValidator(10, 100);
@@ -1033,6 +1155,42 @@ QUnit.test(
     assert.equal(item.item.name, "text3", "the name autogenerated successful");
   }
 );
+
+QUnit.test("be able to modify empty items, bug#428", function(assert) {
+  var question = new Survey.QuestionMultipleText("q1");
+  var property = Survey.JsonObject.metaData.findProperty(
+    "multipletext",
+    "items"
+  );
+  var editor = new SurveyPropertyTextItemsEditor(property);
+  editor.onChanged = (newValue: any) => {
+    question.items = newValue;
+  };
+  editor.object = question;
+  editor.beforeShow();
+  editor.onAddClick();
+  editor.onApplyClick();
+  assert.equal(question.items.length, 1, "The item has been added");
+});
+
+QUnit.test("onPropertyValueChanging callback, Bug #438", function(assert) {
+  var question = new Survey.QuestionText("q1");
+  var property = Survey.JsonObject.metaData.findProperty("question", "title");
+  var stringProperty = new SurveyStringPropertyEditor(property);
+  stringProperty.beforeShow();
+  stringProperty.onChanged = (newValue: any) => {
+    question.title = newValue;
+  };
+  stringProperty.object = question;
+  var options = new EditorOptionsTests();
+  options.doValueChangingCallback = function(options) {
+    options.newValue = options.value.trim();
+  };
+  stringProperty.options = options;
+  stringProperty.koValue(" ss   ");
+  stringProperty.apply();
+  assert.equal(question.title, "ss", "The value has been trimmed");
+});
 
 function createSurvey(): Survey.Survey {
   return new Survey.Survey({

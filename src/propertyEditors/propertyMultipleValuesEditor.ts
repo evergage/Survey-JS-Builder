@@ -36,10 +36,13 @@ export class SurveyPropertyMultipleValuesEditor extends SurveyPropertyModalEdito
     this.setEditingValue();
   }
   protected onBeforeApply() {
-    this.koValue(this.koEditingValue());
+    this.koValue([].concat(this.koEditingValue()));
   }
   public get editorType(): string {
     return "multiplevalues";
+  }
+  public getBackgroundCls(value) {
+    return this.koEditingValue().indexOf("" + value) === -1 ? "svd-light-background-color" : "svd-main-background-color"
   }
   private setItems() {
     Survey.ItemValue.setData(this.items, this.property.choices);

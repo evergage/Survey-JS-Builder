@@ -60,14 +60,6 @@ export class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
       .getString("pe.itemEdit")
       ["format"](this.koEditItem().item.value);
   }
-  protected checkForErrors(): boolean {
-    var result = false;
-    for (var i = 0; i < this.koItems().length; i++) {
-      var item = this.koItems()[i];
-      result = item.hasError() || result;
-    }
-    return result;
-  }
   public beforeShow() {
     super.beforeShow();
     var props = this.getDefinedProperties();
@@ -133,12 +125,13 @@ export class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
     if (this.options) {
       this.options.onItemValueAddedCallback(
         this.editablePropertyName,
-        itemValue
+        itemValue,
+        values
       );
     }
     return new SurveyPropertyItemValuesEditorItem(
       itemValue,
-      this.columns,
+      () => this.columns,
       this.options,
       this.getItemValueClassName()
     );
@@ -148,7 +141,7 @@ export class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
     itemValue.setData(item);
     return new SurveyPropertyItemValuesEditorItem(
       itemValue,
-      this.columns,
+      () => this.columns,
       this.options,
       this.getItemValueClassName()
     );
@@ -157,6 +150,7 @@ export class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
     var itemValue = new Survey.ItemValue(item);
     if (this.object) {
       itemValue["survey"] = this.object.survey;
+      itemValue["object"] = this.object;
     }
     itemValue.locOwner = this;
     return itemValue;
@@ -165,12 +159,21 @@ export class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
     var item = editorItem.item;
     var alwaySaveTextInPropertyEditors =
       this.options && this.options.alwaySaveTextInPropertyEditors;
-    if (!alwaySaveTextInPropertyEditors && item.text == item.value) {
+    if (
+      !alwaySaveTextInPropertyEditors &&
+      item.text == item.value &&
+      !this.isTextLocalized(item)
+    ) {
       item.text = null;
     }
     var itemValue = new Survey.ItemValue(null);
     itemValue.setData(item);
+    delete itemValue["survey"];
+    delete itemValue["object"];
     return itemValue;
+  }
+  private isTextLocalized(item) {
+    return Object.keys(item.locText.values).length > 1;
   }
   protected onValueChanged() {
     super.onValueChanged();
@@ -243,11 +246,11 @@ export class SurveyPropertyItemValuesEditor extends SurveyNestedPropertyEditor {
 export class SurveyPropertyItemValuesEditorItem extends SurveyNestedPropertyEditorItem {
   constructor(
     public item: Survey.ItemValue,
-    public columns: Array<SurveyNestedPropertyEditorColumn>,
+    getColumns: () => Array<SurveyNestedPropertyEditorColumn>,
     options: ISurveyObjectEditorOptions,
     private className: string = ""
   ) {
-    super(item, columns, options);
+    super(item, getColumns, options);
   }
   protected createSurveyQuestionEditor() {
     return new SurveyQuestionEditor(
