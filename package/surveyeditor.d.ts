@@ -1,4 +1,4 @@
-/*Type definitions for Surveyjs Builder(Editor) JavaScript library v1.0.30
+/*Type definitions for Surveyjs Builder(Editor) JavaScript library v1.0.52
 (c) Devsoft Baltic O� - http://surveyjs.io/
 Github: https://github.com/surveyjs/editor
 License: https://surveyjs.io/Licenses#BuildSurvey
@@ -22,6 +22,7 @@ import "../localization/polish";
 import "../localization/portuguese";
 import "../localization/simplified-chinese";
 import "../localization/spanish";
+import "../localization/traditional-chinese";
 
 export declare var enStrings: {
     survey: {
@@ -55,6 +56,7 @@ export declare var enStrings: {
         expression: string;
     };
     ed: {
+        defaultLocale: string;
         survey: string;
         settings: string;
         editSurvey: string;
@@ -71,6 +73,7 @@ export declare var enStrings: {
         testSurveyAgain: string;
         testSurveyWidth: string;
         embedSurvey: string;
+        translation: string;
         saveSurvey: string;
         designer: string;
         jsonEditor: string;
@@ -88,6 +91,13 @@ export declare var enStrings: {
         modified: string;
         saving: string;
         saved: string;
+        saveError: string;
+        translationAddLanguage: string;
+        translationShowAllStrings: string;
+        translationShowAllPages: string;
+        translationNoStrings: string;
+        translationExportToSCVButton: string;
+        translationImportFromSCVButton: string;
     };
     pel: {
         isRequired: string;
@@ -238,6 +248,8 @@ export declare var enStrings: {
         triggerNotSet: string;
         triggerRunIf: string;
         triggerSetToName: string;
+        triggerFromName: string;
+        triggerRunExpression: string;
         triggerSetValue: string;
         triggerIsVariable: string;
     };
@@ -341,6 +353,8 @@ export declare var enStrings: {
     triggers: {
         completetrigger: string;
         setvaluetrigger: string;
+        copyvaluetrigger: string;
+        runexpressiontrigger: string;
         visibletrigger: string;
     };
     p: {
@@ -497,6 +511,7 @@ export declare var editorLocalization: {
     locales: {};
     getString: (strName: string, locale?: string) => any;
     hasString: (strName: string, locale?: string) => boolean;
+    getLocaleName: (loc: string, defaultLocale?: string) => string;
     getPropertyName: (strName: string, locale?: string) => any;
     getPropertyTitle: (strName: string, locale?: string) => any;
     getProperty: (strName: string, locale?: string) => any;
@@ -539,6 +554,7 @@ export declare var defaultStrings: {
         expression: string;
     };
     ed: {
+        defaultLocale: string;
         survey: string;
         settings: string;
         editSurvey: string;
@@ -555,6 +571,7 @@ export declare var defaultStrings: {
         testSurveyAgain: string;
         testSurveyWidth: string;
         embedSurvey: string;
+        translation: string;
         saveSurvey: string;
         designer: string;
         jsonEditor: string;
@@ -572,6 +589,13 @@ export declare var defaultStrings: {
         modified: string;
         saving: string;
         saved: string;
+        saveError: string;
+        translationAddLanguage: string;
+        translationShowAllStrings: string;
+        translationShowAllPages: string;
+        translationNoStrings: string;
+        translationExportToSCVButton: string;
+        translationImportFromSCVButton: string;
     };
     pel: {
         isRequired: string;
@@ -722,6 +746,8 @@ export declare var defaultStrings: {
         triggerNotSet: string;
         triggerRunIf: string;
         triggerSetToName: string;
+        triggerFromName: string;
+        triggerRunExpression: string;
         triggerSetValue: string;
         triggerIsVariable: string;
     };
@@ -825,6 +851,8 @@ export declare var defaultStrings: {
     triggers: {
         completetrigger: string;
         setvaluetrigger: string;
+        copyvaluetrigger: string;
+        runexpressiontrigger: string;
         visibletrigger: string;
     };
     p: {
@@ -980,8 +1008,6 @@ export declare class DragDropTargetElement {
     page: Survey.Page;
     target: any;
     source: any;
-    moveToParent: any;
-    moveToIndex: number;
     nestedPanelDepth: number;
     constructor(page: Survey.Page, target: any, source: any);
     moveTo(destination: any, isBottom: boolean, isEdge?: boolean): boolean;
@@ -1007,7 +1033,6 @@ export declare class DragDropHelper {
     startDragToolboxItem(event: DragEvent, elementName: string, elementJson: any): void;
     isSurveyDragging(event: DragEvent): boolean;
     doDragDropOver(event: DragEvent, element: any, isEdge?: boolean): void;
-    replaceTargetElement(element: any): any;
     end(): void;
     readonly isMoving: boolean;
     doDrop(event: DragEvent): void;
@@ -1019,12 +1044,13 @@ export interface ISurveyObjectEditorOptions {
     alwaySaveTextInPropertyEditors: boolean;
     showApplyButtonInEditors: boolean;
     useTabsInElementEditor: boolean;
-    onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue): any;
-    onMatrixDropdownColumnAddedCallback(column: Survey.MatrixDropdownColumn): any;
+    onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue, itemValues: Array<Survey.ItemValue>): any;
+    onMatrixDropdownColumnAddedCallback(matrix: Survey.Question, column: Survey.MatrixDropdownColumn, columns: Array<Survey.MatrixDropdownColumn>): any;
     onSetPropertyEditorOptionsCallback(propertyName: string, obj: Survey.Base, editorOptions: any): any;
     onGetErrorTextOnValidationCallback(propertyName: string, obj: Survey.Base, value: any): string;
     onValueChangingCallback(options: any): any;
     onPropertyEditorObjectSetCallback(propertyName: string, obj: Survey.Base, editor: SurveyPropertyEditorBase): any;
+    onPropertyEditorKeyDownCallback(propertyName: string, obj: Survey.Base, editor: SurveyPropertyEditorBase, event: KeyboardEvent): any;
     onPropertyEditorModalShowDescriptionCallback(propertyName: string, obj: Survey.Base): any;
     onGetElementEditorTitleCallback(obj: Survey.Base, title: string): string;
 }
@@ -1034,6 +1060,7 @@ export declare class SurveyPropertyEditorBase implements Survey.ILocalizableOwne
     koIsDefault: any;
     koHasError: any;
     koErrorText: any;
+    koDisplayError: any;
     isTabProperty: boolean;
     isInplaceProperty: boolean;
     onChanged: (newValue: any) => any;
@@ -1062,12 +1089,13 @@ export declare class SurveyPropertyEditorBase implements Survey.ILocalizableOwne
     hasError(): boolean;
     getLocString(name: string): any;
     hasLocString(name: string): boolean;
+    protected readonly isCurrentValueEmpty: boolean;
     protected checkForErrors(): boolean;
     readonly isRequired: boolean;
     protected setIsRequired(): void;
     protected setTitleAndDisplayName(): void;
     protected onBeforeApply(): void;
-    apply(): void;
+    apply(): boolean;
     readonly locale: string;
     getLocale(): string;
     getMarkdownHtml(text: string): string;
@@ -1085,6 +1113,7 @@ export declare class SurveyPropertyEditorBase implements Survey.ILocalizableOwne
     protected endValueUpdating(): void;
     protected updateValue(): void;
     protected getValue(): any;
+    keyDownHandler(property: any, event: any): boolean;
 }
 
 export declare class SurveyPropertyCustomEditor extends SurveyPropertyEditorBase {
@@ -1110,6 +1139,7 @@ export declare class SurveyStringPropertyEditor extends SurveyPropertyEditorBase
 }
 export declare class SurveyDropdownPropertyEditor extends SurveyPropertyEditorBase {
     koChoices: any;
+    koHasFocus: any;
     constructor(property: Survey.JsonObjectProperty);
     readonly editorType: string;
     getValueText(value: any): string;
@@ -1134,13 +1164,12 @@ export declare class SurveyPropertyTextItemsEditor extends SurveyNestedPropertyE
     protected getEditorName(): string;
     protected createNewEditorItem(): any;
     protected createEditorItem(item: any): SurveyPropertyTextItemsItem;
-    protected createItemFromEditorItem(editorItem: any): any;
+    protected createItemFromEditorItem(editorItem: any): Survey.MultipleTextItem;
     protected getProperties(): Array<Survey.JsonObjectProperty>;
 }
 export declare class SurveyPropertyTextItemsItem extends SurveyNestedPropertyEditorItem {
     item: Survey.MultipleTextItem;
-    columns: Array<SurveyNestedPropertyEditorColumn>;
-    constructor(item: Survey.MultipleTextItem, columns: Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions);
+    constructor(item: Survey.MultipleTextItem, getColumns: () => Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions);
     protected createSurveyQuestionEditor(): SurveyQuestionEditor;
 }
 
@@ -1164,6 +1193,7 @@ export declare class SurveyPropertyItemsEditor extends SurveyPropertyModalEditor
     protected onValueChanged(): void;
     setup(): void;
     protected getItemsFromValue(value?: any): Array<any>;
+    protected readonly isCurrentValueEmpty: boolean;
     protected onBeforeApply(): void;
     protected createNewEditorItem(): any;
     protected createEditorItem(item: any): any;
@@ -1180,7 +1210,6 @@ export declare class SurveyPropertyItemValuesEditor extends SurveyNestedProperty
     readonly hasDetailButton: boolean;
     protected getItemValueClassName(): string;
     protected getEditorName(): string;
-    protected checkForErrors(): boolean;
     beforeShow(): void;
     protected getProperties(): Array<Survey.JsonObjectProperty>;
     protected readonly itemValueClasseName: string;
@@ -1199,8 +1228,7 @@ export declare class SurveyPropertyItemValuesEditor extends SurveyNestedProperty
 }
 export declare class SurveyPropertyItemValuesEditorItem extends SurveyNestedPropertyEditorItem {
     item: Survey.ItemValue;
-    columns: Array<SurveyNestedPropertyEditorColumn>;
-    constructor(item: Survey.ItemValue, columns: Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions, className?: string);
+    constructor(item: Survey.ItemValue, getColumns: () => Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions, className?: string);
     protected createSurveyQuestionEditor(): SurveyQuestionEditor;
 }
 
@@ -1213,6 +1241,7 @@ export declare class SurveyPropertyMultipleValuesEditor extends SurveyPropertyMo
     protected updateValue(): void;
     protected onBeforeApply(): void;
     readonly editorType: string;
+    getBackgroundCls(value: any): "svd-light-background-color" | "svd-main-background-color";
 }
 
 export declare class SurveyNestedPropertyEditor extends SurveyPropertyItemsEditor {
@@ -1223,6 +1252,7 @@ export declare class SurveyNestedPropertyEditor extends SurveyPropertyItemsEdito
     onCancelEditItemClick: any;
     koEditorName: any;
     constructor(property: Survey.JsonObjectProperty);
+    readonly canShowDisplayNameOnTop: boolean;
     readonly columns: Array<SurveyNestedPropertyEditorColumn>;
     beforeShow(): void;
     protected createColumns(): void;
@@ -1236,9 +1266,9 @@ export declare class SurveyNestedPropertyEditor extends SurveyPropertyItemsEdito
 }
 export declare class SurveyNestedPropertyEditorItem {
     obj: any;
-    columns: Array<SurveyNestedPropertyEditorColumn>;
     protected options: ISurveyObjectEditorOptions;
-    constructor(obj: any, columns: Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions);
+    constructor(obj: any, getColumns: () => Array<SurveyNestedPropertyEditorColumn>, options: ISurveyObjectEditorOptions);
+    readonly columns: Array<SurveyNestedPropertyEditorColumn>;
     readonly itemEditor: SurveyQuestionEditor;
     readonly cells: Array<SurveyNestedPropertyEditorEditorCell>;
     hasError(): boolean;
@@ -1268,14 +1298,13 @@ export declare class SurveyPropertyDropdownColumnsEditor extends SurveyNestedPro
     protected getEditorName(): string;
     protected createNewEditorItem(): any;
     protected createEditorItem(item: any): SurveyPropertyMatrixDropdownColumnsItem;
-    protected createItemFromEditorItem(editorItem: any): any;
+    protected createItemFromEditorItem(editorItem: any): Survey.MatrixDropdownColumn;
     protected createEditorItemCore(item: any): Survey.MatrixDropdownColumn;
     protected getProperties(): Array<Survey.JsonObjectProperty>;
 }
 export declare class SurveyPropertyMatrixDropdownColumnsItem extends SurveyNestedPropertyEditorItem {
     column: Survey.MatrixDropdownColumn;
-    columns: Array<SurveyNestedPropertyEditorColumn>;
-    constructor(column: Survey.MatrixDropdownColumn, columns: Array<SurveyNestedPropertyEditorColumn>, options?: ISurveyObjectEditorOptions);
+    constructor(column: Survey.MatrixDropdownColumn, getColumns: () => Array<SurveyNestedPropertyEditorColumn>, options?: ISurveyObjectEditorOptions);
     protected createSurveyQuestionEditor(): SurveyQuestionEditor;
 }
 
@@ -1356,7 +1385,7 @@ export declare class SurveyPropertyConditionEditor extends SurveyPropertyTextEdi
     protected onkoTextValueChanged(newValue: any): void;
 }
 export declare function doGetCompletions(prevIdentifier: string, prefix: string, config: {
-    question: Survey.QuestionBase;
+    question: Survey.Question;
     questions: Survey.Question[];
 }, completer?: any): any[];
 export declare function insertMatch(editor: any, data: any): void;
@@ -1381,8 +1410,10 @@ export declare class SurveyPropertyResultfullEditorItem {
 }
 
 export declare class SurveyPropertyDefaultValueEditor extends SurveyPropertyModalEditor {
+    static defaultQuestionName: string;
+    static createJsonFromQuestion(obj: any): any;
+    static createSurveyFromJsonQuestion(questionJson: any): Survey.Survey;
     survey: Survey.Survey;
-    question: Survey.Question;
     koSurvey: any;
     constructor(property: Survey.JsonObjectProperty);
     getValueText(value: any): string;
@@ -1447,11 +1478,32 @@ export declare class SurveyPropertyVisibleTrigger extends SurveyPropertyTrigger 
 }
 export declare class SurveyPropertySetValueTrigger extends SurveyPropertyTrigger {
     trigger: Survey.SurveyTriggerSetValue;
+    triggerSurvey: Survey.Survey;
     koQuestions: any;
     kosetToName: any;
     kosetValue: any;
     koisVariable: any;
-    constructor(trigger: Survey.SurveyTriggerSetValue, koQuestions: any);
+    koSurvey: any;
+    koHasSurvey: any;
+    survey: Survey.Survey;
+    constructor(trigger: Survey.SurveyTriggerSetValue, koQuestions: any, triggerSurvey: Survey.Survey);
+    createTrigger(): Survey.SurveyTrigger;
+    readonly setToNameOptions: string;
+}
+export declare class SurveyPropertyCopyValueTrigger extends SurveyPropertyTrigger {
+    trigger: Survey.SurveyTrigger;
+    koQuestions: any;
+    kosetToName: any;
+    kofromName: any;
+    constructor(trigger: Survey.SurveyTrigger, koQuestions: any);
+    createTrigger(): Survey.SurveyTrigger;
+}
+export declare class SurveyPropertyRunExpressionTrigger extends SurveyPropertyTrigger {
+    trigger: Survey.SurveyTrigger;
+    koQuestions: any;
+    kosetToName: any;
+    korunExpression: any;
+    constructor(trigger: Survey.SurveyTrigger, koQuestions: any);
     createTrigger(): Survey.SurveyTrigger;
 }
 export declare class SurveyPropertyTriggerObjects {
@@ -1518,7 +1570,7 @@ export declare class SurveyObjects {
     getSelectedObjectPage(obj?: Survey.Base): Survey.Page;
     removeObject(obj: Survey.Base): void;
     nameChanged(obj: Survey.Base): void;
-    selectNextQuestion(isUp: boolean): Survey.QuestionBase;
+    selectNextQuestion(isUp: boolean): Survey.Question;
 }
 
 export declare class SurveyQuestionEditorProperty {
@@ -1529,7 +1581,7 @@ export declare class SurveyQuestionEditorProperty {
     readonly objectProperty: SurveyObjectProperty;
     readonly editor: SurveyPropertyEditorBase;
     hasError(): boolean;
-    apply(): void;
+    apply(): boolean;
     reset(): void;
     beforeShow(): void;
 }
@@ -1547,7 +1599,7 @@ export declare class SurveyQuestionEditorProperties {
     isTabProperty: boolean;
     rows: Array<SurveyQuestionEditorRow>;
     constructor(obj: Survey.Base, properties: Array<any>, onCanShowPropertyCallback?: (object: any, property: Survey.JsonObjectProperty) => boolean, options?: ISurveyObjectEditorOptions, tab?: any);
-    apply(): void;
+    apply(): boolean;
     reset(): void;
     beforeShow(): void;
     hasError(): boolean;
@@ -1583,7 +1635,7 @@ export declare class SurveyPropertyEditorShowWindow {
     koEditor: any;
     onCanShowPropertyCallback: (object: any, property: Survey.JsonObjectProperty) => boolean;
     constructor();
-    show(questionBase: Survey.Base, elWindow: HTMLElement, onChanged: (question: Survey.QuestionBase) => any, options?: ISurveyObjectEditorOptions, onClosed?: () => any): void;
+    show(question: Survey.Base, elWindow: HTMLElement, onChanged: (question: Survey.Question) => any, options?: ISurveyObjectEditorOptions, onClosed?: () => any): void;
 }
 export declare class SurveyQuestionProperties {
     obj: any;
@@ -1612,13 +1664,15 @@ export declare class SurveyQuestionEditor {
     protected doCloseWindow(isCancel: boolean): void;
     hasError(): boolean;
     reset(): void;
-    apply(): void;
+    apply(): boolean;
     readonly useTabsInElementEditor: boolean;
 }
 export declare class SurveyQuestionEditorTab {
     obj: any;
     properties: SurveyQuestionEditorProperties;
+    onExpand: () => void;
     constructor(obj: any, properties: SurveyQuestionEditorProperties, _name: any);
+    expand(): void;
     koAfterRender(elements: HTMLElement[], context: any): void;
     readonly name: string;
     title: string;
@@ -1627,7 +1681,7 @@ export declare class SurveyQuestionEditorTab {
     hasError(): boolean;
     beforeShow(): void;
     reset(): void;
-    apply(): void;
+    apply(): boolean;
     doCloseWindow(): void;
     protected getValue(property: Survey.JsonObjectProperty): any;
 }
@@ -1703,8 +1757,9 @@ export declare class QuestionToolbox {
         /**
             * Add a copied Question into Toolbox
             * @param question a copied Survey.Question
+            * @param options a json object that allows you to override question properties. Attributes are: name, title, isCopied, iconName, json and category.
             */
-        addCopiedItem(question: Survey.QuestionBase): void;
+        addCopiedItem(question: Survey.Question, options?: any): void;
         /**
             * Add a toolbox item
             * @param item the toolbox item description
@@ -1838,6 +1893,7 @@ export declare class PagesEditor {
     showPageSettings(page: Survey.PageModel): void;
     onPageClick: (model: any, event: any) => void;
     readonly sortableOptions: {
+        onStart: (evt: any) => void;
         onEnd: (evt: any) => void;
         handle: string;
         animation: number;
@@ -1871,12 +1927,13 @@ export declare enum ObjType {
     Survey = 1,
     Page = 2,
     Panel = 3,
-    Question = 4
+    Question = 4,
 }
 export declare class SurveyHelper {
     static getNewPageName(objs: Array<any>): string;
     static getNewQuestionName(objs: Array<any>): string;
     static getNewPanelName(objs: Array<any>): string;
+    static generateNewName(name: string): string;
     static getNewName(objs: Array<any>, baseName: string): string;
     static getObjectType(obj: any): ObjType;
     static getObjectTypeStr(obj: any): string;
@@ -1930,7 +1987,7 @@ export declare class QuestionConverter {
     static convertInfo: {};
     static addConvertInfo(className: string, convertToClassName: string): void;
     static getConvertToClasses(className: string): Array<string>;
-    static convertObject(obj: Survey.QuestionBase, convertToClass: string): Survey.QuestionBase;
+    static convertObject(obj: Survey.Question, convertToClass: string): Survey.Question;
 }
 
 export declare class SurveyUndoRedo {
@@ -2094,7 +2151,7 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         /**
             * The event is called on adding a new question into the survey. Typically, when a user dropped a Question from the Question Toolbox into designer Survey area.
             * <br/> sender the survey editor object that fires the event
-            * <br/> options.question a new added survey question. Survey.QuestionBase object
+            * <br/> options.question a new added survey question. Survey.Question object
             * <br/> options.page the survey Page object where question has been added.
             */
         onQuestionAdded: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
@@ -2110,12 +2167,15 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             * <br/> sender the survey editor object that fires the event
             * <br/> options.property  the object property (Survey.JsonObjectProperty object). It has name, className, type, visible, readOnly and other properties.
             * <br/> options.newItem a new created Survey.ItemValue object.
+            * <br/> options.itemValues an editing Survey.ItemValue array. newItem object is not added yet into this array.
             */
         onItemValueAdded: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
         /**
             * The event is called when a user adds a new column into MatrixDropdown or MatrixDynamic questions. Use it to set some properties of Survey.MatrixDropdownColumn by default, for example name or a custom property.
             * <br/> sender the survey editor object that fires the event
+            * <br/> options.matrix a matrix question where column is located, matrix.columns.
             * <br/> options.newColumn a new created Survey.MatrixDropdownColumn object.
+            * <br/> options.columns editable columns objects. They can be different from options.matrix.columns. options.columns and options.matrix.columns are equal after user press Apply or Cancel and options.columns will be set to options.matrix.columns or reset to initial state.
             */
         onMatrixColumnAdded: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
         /**
@@ -2230,6 +2290,15 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             */
         onPropertyEditorObjectAssign: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
         /**
+            * Use this event to process key down event in a property editor
+            * <br/> sender the survey editor object that fires the event
+            * <br/> options.obj  the survey object which property is edited in the Property Editor.
+            * <br/> options.propertyName  the name of the edited property.
+            * <br/> options.editor the instance of Property Editor.
+            * <br/> options.event the instance of mouse event.
+            */
+        onPropertyEditorKeyDown: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
+        /**
             * Use this event to disable some operations for an element (question/panel).
             * <br/> sender the survey editor object that fires the event
             * <br/> options.obj  the survey object question/panel
@@ -2268,14 +2337,55 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         koAutoSave: KnockoutObservable<boolean>;
         /**
             * The event is called when end-user addes new element (question or panel) into the survey toolbox.
+            * It calls before adding the element into toolbox and it allows to change the toolbox item attributes using options.itemOptions parameter
             * <br/> sender the survey editor object that fires the event
             * <br/> options.element is a new added element
+            * <br/> options.itemOptions a json object that allows you to override question properties. Attributes are: name, title, isCopied, iconName, json and category.
+            * @see onCustomElementAddedIntoToolbox
+            */
+        onCustomElementAddingIntoToolbox: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
+        /**
+            * The event is called when end-user addes new element (question or panel) into the survey toolbox.
+            * <br/> sender the survey editor object that fires the event
+            * <br/> options.element is a new added element
+            * @see onCustomElementAddingIntoToolbox
             */
         onCustomElementAddedIntoToolbox: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
+        /**
+            * The event is fired on uploading the file. There are two properties in options: options.name options.callback.
+            * <br/> sender the survey editor object that fires the event
+            * <br/>  name: name, file: file, accept: accept
+            * <br/> file the Javascript File object
+            * <br/> callback called on upload complete
+            * @see uploadFile
+            */
+        onUploadFile: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
+        /**
+            * The method is called when the translation from csv file is imported.
+            * @see translation
+            * @see showTranslationTab
+            */
+        onTranslationImported: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
+        /**
+            * Use this event to control drag&drop operations.
+            * <br/> sender the survey editor object that fires the event.
+            * <br/> options.survey the editing survey object.
+            * <br/> options.allow set it to false to disable dragging.
+            * <br/> options.target a target element that is dragging.
+            * <br/> options.source a source element. It can be null, if it is a new element, dragging from toolbox.
+            * <br/> options.parent a page or panel where target element is dragging.
+            * <br/> options.insertBefore an element before the target element is dragging. It can be null if parent container (page or panel) is empty or dragging an element under the last element of the container.
+            * <br/> options.insertAfter an element after the target element is dragging. It can be null if parent container (page or panel) is empty or dragging element to the top of the parent container.
+            */
+        onDragDropAllow: Survey.Event<(sender: SurveyEditor, options: any) => any, any>;
         /**
             * A boolean property, false by default. Set it to true to call protected doSave method automatically on survey changing.
             */
         isAutoSave: boolean;
+        /**
+            * Set it to false to suppress an alert message about error on saving the survey into database.
+            */
+        showErrorOnFailedSave: boolean;
         koShowState: KnockoutObservable<boolean>;
         /**
             * A boolean property, false by default. Set it to true to show the state in the toolbar (saving/saved).
@@ -2297,6 +2407,7 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         selectEditorClick: any;
         selectTestClick: any;
         selectEmbedClick: any;
+        selectTranslationClick: any;
         generateValidJSONClick: any;
         generateReadableJSONClick: any;
         doUndoClick: any;
@@ -2304,7 +2415,6 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         deleteObjectClick: any;
         koState: KnockoutObservable<string>;
         runSurveyClick: any;
-        embedingSurveyClick: any;
         saveButtonClick: any;
         draggingToolboxItem: any;
         clickToolboxItem: any;
@@ -2312,7 +2422,9 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         /**
             * The Survey Editor constructor.
             * @param renderedElement HtmlElement or html element id where Survey Editor will be rendered
-            * @param options Survey Editor options. The following options are available: showJSONEditorTab, showTestSurveyTab, showEmbededSurveyTab, inplaceEditForValues, useTabsInElementEditor, showPropertyGrid, questionTypes, showOptions, generateValidJSON, isAutoSave, designerHeight.
+            * @param options Survey Editor options. The following options are available: showJSONEditorTab,
+            * showTestSurveyTab, showEmbededSurveyTab, showTranslationTab, inplaceEditForValues, useTabsInElementEditor, showPropertyGrid,
+            * questionTypes, showOptions, generateValidJSON, isAutoSave, designerHeight, showErrorOnFailedSave
             */
         constructor(renderedElement?: any, options?: any);
         themeCss: KnockoutComputed<string>;
@@ -2326,7 +2438,7 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         /**
             * Call this method to render the survey editor.
             * @param element HtmlElement or html element id where Survey Editor will be rendered
-            * @param options Survey Editor options. The following options are available: showJSONEditorTab, showTestSurveyTab, showEmbededSurveyTab, showOptions, generateValidJSON, isAutoSave, designerHeight.
+            * @param options Survey Editor options. The following options are available: showJSONEditorTab, showTestSurveyTab, showEmbededSurveyTab, showTranslationTab, showOptions, generateValidJSON, isAutoSave, designerHeight.
             */
         render(element?: any, options?: any): void;
         loadSurvey(surveyId: string): void;
@@ -2345,6 +2457,11 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             * @see QuestionToolbox
             */
         readonly toolbox: QuestionToolbox;
+        /**
+            * Return the translation mode object.
+            * @see showTranslationTab
+            */
+        readonly translation: Translation;
         /**
             * The list of toolbar items. You may add/remove/replace them.
             * @see IToolbarItem
@@ -2388,6 +2505,10 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             */
         showEmbededSurveyTab: boolean;
         /**
+            * Set it to true to show "Translation" tab and to false to hide the tab
+            */
+        showTranslationTab: boolean;
+        /**
             * Set it to true to activate RTL support
             */
         isRTL: boolean;
@@ -2405,7 +2526,7 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         getLocString(str: string): any;
         movePage: (indexFrom: number, indexTo: number) => void;
         addPageToUI(page: Survey.Page): void;
-        onPropertyValueChanged(property: Survey.JsonObjectProperty, obj: any, newValue: any): void;
+        onPropertyValueChanged(property: Survey.JsonObjectProperty, obj: any, newValue: any): string;
         /**
             * Make a "Survey Designer" tab active.
             */
@@ -2419,9 +2540,13 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             */
         showTestSurvey(): void;
         /**
-            * Make a Embed Survey" tab active.
+            * Make a "Embed Survey" tab active.
             */
         showEmbedEditor(): void;
+        /**
+            * Make a "Translation"" tab active.
+            */
+        showTranslationEditor(): void;
         copyElement(element: Survey.Base): Survey.IElement;
         isCurrentPageEmpty: KnockoutComputed<boolean>;
         dragOverQuestionsEditor(data: any, e: any): boolean;
@@ -2433,13 +2558,13 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
             */
         showElementEditor(element: Survey.Base, onClose: (isCanceled: boolean) => any): void;
         showQuestionEditor: (element: Survey.Base, onClose?: (isCanceled: boolean) => any) => void;
-        onQuestionEditorChanged(question: Survey.QuestionBase): void;
+        onQuestionEditorChanged(question: Survey.Question): void;
         /**
             * Add a question into Toolbox object
             * @param question an added Survey.Question
             * @see toolbox
             */
-        addCustomToolboxQuestion(question: Survey.QuestionBase): void;
+        addCustomToolboxQuestion(question: Survey.Question): void;
         /**
             * Copy a question to the active page
             * @param question A copied Survey.Question
@@ -2457,14 +2582,21 @@ export declare class SurveyEditor implements ISurveyObjectEditorOptions {
         deleteElement(element: Survey.Base): void;
         alwaySaveTextInPropertyEditors: boolean;
         showApplyButtonInEditors: boolean;
-        onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue): void;
-        onMatrixDropdownColumnAddedCallback(column: Survey.MatrixDropdownColumn): void;
+        onItemValueAddedCallback(propertyName: string, itemValue: Survey.ItemValue, itemValues?: Array<Survey.ItemValue>): void;
+        onMatrixDropdownColumnAddedCallback(matrix: Survey.Question, column: Survey.MatrixDropdownColumn, columns: Array<Survey.MatrixDropdownColumn>): void;
         onSetPropertyEditorOptionsCallback(propertyName: string, obj: Survey.Base, editorOptions: any): void;
         onGetErrorTextOnValidationCallback(propertyName: string, obj: Survey.Base, value: any): string;
         onValueChangingCallback(options: any): void;
+        onPropertyEditorKeyDownCallback(propertyName: string, obj: Survey.Base, editor: SurveyPropertyEditorBase, event: KeyboardEvent): void;
         onPropertyEditorObjectSetCallback(propertyName: string, obj: Survey.Base, editor: SurveyPropertyEditorBase): void;
         onPropertyEditorModalShowDescriptionCallback(propertyName: string, obj: Survey.Base): any;
         onGetElementEditorTitleCallback(obj: Survey.Base, title: string): string;
+        /**
+            * Upload the files on a server
+            * @param files files to upload
+            * @param uploadingCallback a call back function to get the status on uploading the file and operation result - URI of the uploaded file
+            */
+        uploadFiles(files: File[], uploadingCallback: (status: string, data: any) => any): void;
 }
 
 export interface ISurveyInfo {
@@ -2497,10 +2629,10 @@ export declare class SurveysManager {
     currentSurvey: KnockoutObservable<ISurveyInfo>;
     currentSurveyName: KnockoutObservable<string>;
     isLoading: KnockoutObservable<boolean>;
-    readonly cssEdit: "icon-saved" | "icon-edit";
-    readonly cssAdd: "icon-new" | "icon-fork";
-    readonly titleEdit: "Save survey name" | "Edit survey name";
-    readonly titleAdd: "Add new survey" | "Fork this survey";
+    readonly cssEdit: string;
+    readonly cssAdd: string;
+    readonly titleEdit: string;
+    readonly titleAdd: string;
     nameEditorKeypress: (model: any, event: any) => void;
 }
 
@@ -2516,7 +2648,10 @@ export declare class StylesManager {
     static ThemeCss: {
         [key: string]: string;
     };
-    static BootstrapMaterialThemeCss: {
+    static bootstrapThemeCss: {
+        [key: string]: string;
+    };
+    static bootstrapmaterialThemeCss: {
         [key: string]: string;
     };
     static addThemeColors(themeName: string, themeColors: Object): void;
@@ -2527,6 +2662,82 @@ export declare class StylesManager {
     static applySurveyTheme(themeName: any): void;
     constructor();
     initializeStyles(sheet: CSSStyleSheet): void;
+}
+
+export declare class TranslationItemBase {
+    name: string;
+    constructor(name: string);
+    readonly isGroup: boolean;
+    fillLocales(locales: Array<string>): void;
+}
+export declare class TranslationItem extends TranslationItemBase {
+    name: string;
+    locString: Survey.LocalizableString;
+    defaultValue: string;
+    constructor(name: string, locString: Survey.LocalizableString, defaultValue?: string);
+    readonly text: any;
+    koValue(loc: string): any;
+    fillLocales(locales: Array<string>): void;
+}
+export interface ITranslationLocales {
+    koLocales: any;
+    showAllStrings: boolean;
+    getLocaleName(loc: string): string;
+}
+export declare class TranslationGroup extends TranslationItemBase {
+    name: any;
+    obj: any;
+    translation: ITranslationLocales;
+    koExpanded: any;
+    constructor(name: any, obj: any, translation?: ITranslationLocales);
+    readonly items: Array<TranslationItemBase>;
+    readonly locItems: Array<TranslationItem>;
+    readonly groups: Array<TranslationGroup>;
+    readonly isGroup: boolean;
+    readonly koLocales: any;
+    readonly localeCount: number;
+    readonly locWidth: string;
+    getLocaleName(loc: string): string;
+    reset(): void;
+    fillLocales(locales: Array<string>): void;
+    readonly showAllStrings: boolean;
+    readonly hasItems: boolean;
+}
+export declare class Translation implements ITranslationLocales {
+    static csvDelimiter: string;
+    koLocales: any;
+    koRoot: any;
+    koAvailableLanguages: any;
+    koSelectedLanguageToAdd: any;
+    koShowAllStrings: any;
+    koFilteredPage: any;
+    koFilteredPages: any;
+    koIsEmpty: any;
+    koExportToSCVFile: any;
+    koImportFromSCVFile: any;
+    importFinishedCallback: () => void;
+    constructor(survey: Survey.Survey, showAllStrings?: boolean);
+    survey: Survey.Survey;
+    readonly root: TranslationGroup;
+    filteredPage: Survey.Page;
+    reset(): void;
+    readonly locales: Array<string>;
+    readonly defaultLocale: string;
+    getLocaleName(loc: string): string;
+    hasLocale(locale: string): boolean;
+    addLocale(locale: string): void;
+    resetLocales(): void;
+    readonly selectLanguageOptionsCaption: any;
+    showAllStrings: boolean;
+    readonly showAllStringsText: string;
+    readonly showAllPagesText: string;
+    readonly noStringsText: string;
+    readonly exportToCSVText: string;
+    readonly importFromCSVText: string;
+    exportToCSV(): string;
+    importFromCSV(str: string): void;
+    exportToSCVFile(fileName: string): void;
+    importFromSCVFile(file: File): void;
 }
 
 import "./title-editor.scss";
@@ -2563,7 +2774,8 @@ export declare var itemAdorner: {
     getElementName: (model: any) => string;
     afterRender: (elements: HTMLElement[], model: Survey.QuestionSelectBase, editor: any) => void;
 };
-export declare var createAddItemHandler: (question: Survey.QuestionSelectBase, onItemAdded: (itemValue: Survey.ItemValue) => void) => () => void;
+export declare var createAddItemHandler: (question: Survey.QuestionSelectBase, onItemAdded: (itemValue: Survey.ItemValue) => void, onItemAdding?: (itemValue: Survey.ItemValue) => void) => () => void;
+export declare var createAddItemElement: (handler: any) => HTMLDivElement;
 export declare var itemDraggableAdorner: {
     getMarkerClass: (model: any) => "" | "item_draggable";
     getElementName: (model: any) => string;
@@ -2610,9 +2822,17 @@ export declare var ratingItemAdorner: {
     afterRender: (elements: HTMLElement[], model: Survey.QuestionRating, editor: any) => void;
 };
 
+import "./image-items.scss";
+export declare var imageItemsAdorner: {
+    getMarkerClass: (model: any) => "" | "image_item_editable";
+    getElementName: (model: any) => string;
+    afterRender: (elements: HTMLElement[], model: Survey.QuestionSelectBase, editor: any) => void;
+};
+
 import "./accordion.scss";
 export interface IAccordionItemData {
     title: string | KnockoutObservable<string>;
+    onExpand: () => void;
 }
 export declare class AccordionItemModel {
     data: IAccordionItemData;
@@ -2625,6 +2845,14 @@ export declare class AccordionItemModel {
 export declare class AccordionModel {
     constructor(params: any);
     tabs: KnockoutObservable<AccordionItemModel>;
+}
+
+import "./splitter.scss";
+export declare class SplitterComponentViewModel {
+    constructor(params: {
+        minLeft: number;
+        minRight: number;
+    }, componentInfo: any);
 }
 
 import "../utils/custom-checkbox.scss";
@@ -2641,4 +2869,5 @@ import "../localization/polish";
 import "../localization/portuguese";
 import "../localization/simplified-chinese";
 import "../localization/spanish";
+import "../localization/traditional-chinese";
 

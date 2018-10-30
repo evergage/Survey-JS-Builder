@@ -2010,7 +2010,7 @@ export class SurveyEditor implements ISurveyObjectEditorOptions {
   onItemValueAddedCallback(
     propertyName: string,
     itemValue: Survey.ItemValue,
-    itemValues: Array<Survey.ItemValue>
+    itemValues?: Array<Survey.ItemValue>
   ) {
     var options = {
       propertyName: propertyName,
